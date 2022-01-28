@@ -334,6 +334,7 @@ data "template_file" "install_tfe_sh" {
   vars = {
     enc_password  = var.enc_password
     hostname      = var.tfe_hostname
+    release_sequence = var.release_sequence
     pgsqlhostname = aws_db_instance.aws7.address
     pgsqlpassword = var.db_password
     pguser        = aws_db_instance.aws7.username

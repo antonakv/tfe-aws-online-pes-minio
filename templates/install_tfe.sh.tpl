@@ -121,6 +121,7 @@ echo "
     \"DaemonAuthenticationPassword\": \"Password1#\",
     \"TlsBootstrapType\":             \"server-path\",
     \"TlsBootstrapHostname\":         \"${hostname}\",
+    \"ReleaseSequence\":         ${release_sequence},
     \"TlsBootstrapCert\":             \"/home/ubuntu/install/server.crt\",
     \"TlsBootstrapKey\":              \"/home/ubuntu/install/server.key\",
     \"BypassPreflightChecks\":        true,

@@ -1,4 +1,4 @@
-# tfe-aws-online-s3db
+# tfe-aws-online-pes
 Terraform Enterprise online install on AWS with S3 and Postgresql db
 
 This manual is dedicated to install Terraform Enterprise online install on AWS with S3 and Postgresql db.

@@ -59,9 +59,10 @@ cidr_subnet1     = "10.5.1.0/24"
 cidr_subnet2     = "10.5.2.0/24"
 cidr_subnet3     = "10.5.3.0/24"
 cidr_subnet4     = "10.5.4.0/24"
-db_password      = "dbpwd_HERE"
-enc_password     = "encpwd_HERE"
+db_password      = "Password1#"
+enc_password     = "Password1#"
 tfe_hostname     = "tfe7.anton.hashicorp-success.com"
+release_sequence = 588
 ```
 
 - Change folder to `pre-req`

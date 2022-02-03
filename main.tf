@@ -210,6 +210,13 @@ resource "aws_security_group" "aakulov-aws7" {
     self      = true
   }
 
+   ingress {
+    from_port = 9000
+    to_port   = 9000
+    protocol  = "tcp"
+    self      = true
+  }
+
   egress {
     from_port   = 0
     to_port     = 0

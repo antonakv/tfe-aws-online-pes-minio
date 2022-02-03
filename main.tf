@@ -329,19 +329,55 @@ resource "aws_iam_role_policy" "aakulov-aws7-ec2-s3" {
   })
 }
 
+data "template_file" "configure_minio_sh" {
+  template = file("templates/configure_minio.sh.tpl")
+  vars = {
+    minio_secret_key = var.minio_secret_key
+    minio_access_key = var.minio_access_key
+  }
+}
+
+data "template_cloudinit_config" "aws7_minio_cloudinit" {
+  gzip          = true
+  base64_encode = true
+
+  part {
+    filename     = "configure_minio.sh"
+    content_type = "text/x-shellscript"
+    content      = data.template_file.configure_minio_sh.rendered
+  }
+}
+
+resource "aws_instance" "aws7_minio" {
+  ami                         = var.ami_minio
+  instance_type               = var.instance_type_minio
+  key_name                    = var.key_name
+  vpc_security_group_ids      = [aws_security_group.aakulov-aws7.id]
+  subnet_id                   = aws_subnet.subnet_public1.id
+  associate_public_ip_address = true
+  user_data                   = data.template_cloudinit_config.aws7_minio_cloudinit.rendered
+  metadata_options {
+    http_tokens   = "required"
+    http_endpoint = "enabled"
+  }
+  tags = {
+    Name = "aakulov-aws7-minio"
+  }
+}
+
 data "template_file" "install_tfe_sh" {
   template = file("templates/install_tfe.sh.tpl")
   vars = {
-    enc_password  = var.enc_password
-    hostname      = var.tfe_hostname
+    enc_password     = var.enc_password
+    hostname         = var.tfe_hostname
     release_sequence = var.release_sequence
-    pgsqlhostname = aws_db_instance.aws7.address
-    pgsqlpassword = var.db_password
-    pguser        = aws_db_instance.aws7.username
-    s3bucket      = aws_s3_bucket.aws7.bucket
-    s3region      = var.region
-    cert_pem      = tls_self_signed_cert.aws7.cert_pem
-    key_pem       = tls_private_key.aws7.private_key_pem
+    pgsqlhostname    = aws_db_instance.aws7.address
+    pgsqlpassword    = var.db_password
+    pguser           = aws_db_instance.aws7.username
+    s3bucket         = aws_s3_bucket.aws7.bucket
+    s3region         = var.region
+    cert_pem         = tls_self_signed_cert.aws7.cert_pem
+    key_pem          = tls_private_key.aws7.private_key_pem
   }
 }
 
@@ -365,6 +401,9 @@ resource "aws_instance" "aws7" {
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.aws7_cloudinit.rendered
   iam_instance_profile        = aws_iam_instance_profile.aakulov-aws7-ec2-s3.id
+  depends_on = [
+    aws_instance.aws7_minio
+  ]
   metadata_options {
     http_tokens   = "required"
     http_endpoint = "enabled"

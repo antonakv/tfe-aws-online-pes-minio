@@ -47,3 +47,17 @@ variable "release_sequence" {
   type        = number
   description = "Terraform Enterprise release sequence number"
 }
+variable "minio_access_key" {
+  type        = string
+  description = "Minio access key"
+}
+variable "minio_secret_key" {
+  type        = string
+  description = "Minio secret key"
+}
+variable "ami_minio" {
+  description = "Amazon EC2 Minio ami created with Packer"
+}
+variable "instance_type_minio" {
+  description = "Amazon EC2 Minio instance type"
+}

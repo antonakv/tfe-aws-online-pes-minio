@@ -23,6 +23,7 @@ vendor/
 Gemfile.lock
 .ruby-version
 .DS_Store
+settings.json
 
 cert/
 tfe/

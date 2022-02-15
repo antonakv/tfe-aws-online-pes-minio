@@ -1,0 +1,126 @@
+{
+    "aws_access_key_id": {
+        "value": "P7ZgtWe6SyNFB8"
+    },
+    "aws_instance_profile": {
+        "value": "0"
+    },
+    "aws_secret_access_key": {
+        "value": "fHDPtE92Ng8Cwx"
+    },
+    "azure_account_key": {},
+    "azure_account_name": {},
+    "azure_container": {},
+    "azure_endpoint": {},
+    "backup_token": {
+        "value": "3e69c0572c1eddf7f232cf60f6b8634194bf40d09aa9535c78430e64df407ec4"
+    },
+    "ca_certs": {},
+    "capacity_concurrency": {
+        "value": "10"
+    },
+    "capacity_cpus": {
+        "value": "0"
+    },
+    "capacity_memory": {
+        "value": "512"
+    },
+    "custom_image_tag": {
+        "value": "hashicorp/build-worker:now"
+    },
+    "disk_path": {},
+    "enable_active_active": {
+        "value": "0"
+    },
+    "enable_metrics_collection": {
+        "value": "1"
+    },
+    "enc_password": {
+        "value": "Password1#"
+    },
+    "extern_vault_addr": {},
+    "extern_vault_enable": {
+        "value": "0"
+    },
+    "extern_vault_namespace": {},
+    "extern_vault_path": {},
+    "extern_vault_propagate": {},
+    "extern_vault_role_id": {},
+    "extern_vault_secret_id": {},
+    "extern_vault_token_renew": {},
+    "extra_no_proxy": {},
+    "force_tls": {
+        "value": "0"
+    },
+    "gcs_bucket": {},
+    "gcs_credentials": {
+        "value": "{}"
+    },
+    "gcs_project": {},
+    "hairpin_addressing": {
+        "value": "0"
+    },
+    "hostname": {
+        "value": "tfe7.anton.hashicorp-success.com"
+    },
+    "iact_subnet_list": {},
+    "iact_subnet_time_limit": {
+        "value": "60"
+    },
+    "installation_type": {
+        "value": "production"
+    },
+    "log_forwarding_config": {},
+    "log_forwarding_enabled": {
+        "value": "0"
+    },
+    "pg_dbname": {
+        "value": "mydbtfe"
+    },
+    "pg_extra_params": {
+        "value": "sslmode=disable"
+    },
+    "pg_netloc": {
+        "value": "terraform-20220203140731760000000001.cu1fxtceaf9d.eu-central-1.rds.amazonaws.com"
+    },
+    "pg_password": {
+        "value": "Password1#"
+    },
+    "pg_user": {
+        "value": "postgres"
+    },
+    "placement": {
+        "value": "placement_s3"
+    },
+    "production_type": {
+        "value": "external"
+    },
+    "redis_host": {},
+    "redis_pass": {
+        "value": "NGVITSiZJKkmtC9ed1XWjScsVZMnXJx5"
+    },
+    "redis_port": {},
+    "redis_use_password_auth": {},
+    "redis_use_tls": {},
+    "restrict_worker_metadata_access": {
+        "value": "0"
+    },
+    "s3_bucket": {
+        "value": "aakulov-aws7-tfe-data"
+    },
+    "s3_endpoint": {
+        "value": "http://10.5.2.98:9000"
+    },
+    "s3_region": {
+        "value": "eu-central-1"
+    },
+    "s3_sse": {},
+    "s3_sse_kms_key_id": {},
+    "tbw_image": {
+        "value": "default_image"
+    },
+    "tls_ciphers": {},
+    "tls_vers": {
+        "value": "tls_1_2_tls_1_3"
+    }
+}

@@ -1,3 +1,7 @@
+locals {
+  s3endpoint = format("http://%s:9000", aws_instance.aws7_minio.private_ip)
+}
+
 provider "aws" {
   region = var.region
 }
@@ -385,6 +389,9 @@ data "template_file" "install_tfe_sh" {
     s3region         = var.region
     cert_pem         = tls_self_signed_cert.aws7.cert_pem
     key_pem          = tls_private_key.aws7.private_key_pem
+    minio_secret_key = var.minio_secret_key
+    minio_access_key = var.minio_access_key
+    s3endpoint       = local.s3endpoint
   }
 }
 
@@ -424,3 +431,5 @@ resource "aws_instance" "aws7" {
 output "aws_url" {
   value = aws_route53_record.aws7.name
 }
+
+

@@ -210,7 +210,7 @@ resource "aws_security_group" "aakulov-aws7" {
     self      = true
   }
 
-   ingress {
+  ingress {
     from_port = 9000
     to_port   = 9000
     protocol  = "tcp"
@@ -247,7 +247,7 @@ resource "aws_db_instance" "aws7" {
   max_allocated_storage  = 100
   engine                 = "postgres"
   engine_version         = "12.7"
-  name                   = "mydbtfe"
+  db_name                = "mydbtfe"
   username               = "postgres"
   password               = var.db_password
   instance_class         = var.db_instance_type
@@ -261,16 +261,16 @@ resource "aws_db_instance" "aws7" {
 
 resource "aws_s3_bucket" "aws7" {
   bucket        = "aakulov-aws7-tfe-data"
-  acl           = "private"
   force_destroy = true
-
-  versioning {
-    enabled = true
-  }
 
   tags = {
     Name = "aakulov-aws7-tfe-data"
   }
+}
+
+resource "aws_s3_bucket_acl" "aws7" {
+  bucket = aws_s3_bucket.aws7.id
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "aws7" {
@@ -373,7 +373,7 @@ resource "aws_instance" "aws7_minio" {
 }
 
 data "template_file" "install_tfe_sh" {
-  template = file("templates/install_tfe.sh.tpl")
+  template = file("templates/install_tfe_minio.sh.tpl")
   vars = {
     enc_password     = var.enc_password
     hostname         = var.tfe_hostname
@@ -412,8 +412,9 @@ resource "aws_instance" "aws7" {
     aws_instance.aws7_minio
   ]
   metadata_options {
-    http_tokens   = "required"
-    http_endpoint = "enabled"
+    http_tokens                 = "required"
+    http_endpoint               = "enabled"
+    http_put_response_hop_limit = 2
   }
   tags = {
     Name = "aakulov-aws7"

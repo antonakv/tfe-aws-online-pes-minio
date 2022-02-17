@@ -431,5 +431,3 @@ resource "aws_instance" "aws7" {
 output "aws_url" {
   value = aws_route53_record.aws7.name
 }
-
-

@@ -49,20 +49,24 @@ cd tfe-aws-online-s3db
 - Create file testing.tfvars with following contents
 
 ```
-key_name         = "aakulov"
-ami              = "ami-086128e34136c3375"
-instance_type    = "t3.2xlarge"
-db_instance_type = "db.t3.medium"
-region           = "eu-central-1"
-cidr_vpc         = "10.5.0.0/16"
-cidr_subnet1     = "10.5.1.0/24"
-cidr_subnet2     = "10.5.2.0/24"
-cidr_subnet3     = "10.5.3.0/24"
-cidr_subnet4     = "10.5.4.0/24"
-db_password      = "Password1#"
-enc_password     = "Password1#"
-tfe_hostname     = "tfe7.anton.hashicorp-success.com"
-release_sequence = 588
+key_name            = "aakulov"
+ami                 = "ami-086128e34136c3375"
+instance_type       = "t3.2xlarge"
+db_instance_type    = "db.t3.medium"
+region              = "eu-central-1"
+cidr_vpc            = "10.5.0.0/16"
+cidr_subnet1        = "10.5.1.0/24"
+cidr_subnet2        = "10.5.2.0/24"
+cidr_subnet3        = "10.5.3.0/24"
+cidr_subnet4        = "10.5.4.0/24"
+db_password         = "Password1#"
+enc_password        = "Password1#"
+tfe_hostname        = "tfe.host.name"
+release_sequence    = 588
+minio_access_key    = "minio_access_key"
+minio_secret_key    = "minio_secret_key"
+ami_minio           = "ami-0b5de643012fe5385"
+instance_type_minio = "t3.large"
 ```
 
 - Change folder to `pre-req`

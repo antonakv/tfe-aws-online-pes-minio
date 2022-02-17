@@ -9,7 +9,7 @@ echo "
         \"value\": \"0\"
     },
     \"aws_secret_access_key\": {
-        \"value\": \"${minio_secret_key}
+        \"value\": \"${minio_secret_key}\"
     },
     \"azure_account_key\": {},
     \"azure_account_name\": {},

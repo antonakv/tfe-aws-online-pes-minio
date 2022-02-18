@@ -178,6 +178,8 @@ aws_access_key_id = ${minio_access_key}
 aws_secret_access_key = ${minio_secret_key}
 " > /home/ubuntu/.aws/credentials
 
+aws s3api create-bucket --acl private --bucket $s3bucket  --endpoint-url $s3endpoint
+
 sh /home/ubuntu/install/healthcheck.sh &> /home/ubuntu/install/hc_tfe.log &
 
 sh /home/ubuntu/install/install_tfe.sh &> /home/ubuntu/install/install_tfe.log

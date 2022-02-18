@@ -1,5 +1,6 @@
 locals {
   s3endpoint = format("http://%s:9000", aws_instance.aws7_minio.private_ip)
+  s3endpointlocal = "http://127.0.0.1:9000"
 }
 
 provider "aws" {
@@ -346,7 +347,7 @@ data "template_file" "configure_minio_sh" {
     minio_secret_key = var.minio_secret_key
     minio_access_key = var.minio_access_key
     s3bucket         = var.s3_bucket
-    s3endpoint       = local.s3endpoint
+    s3endpoint       = local.s3endpointlocal
   }
 }
 
@@ -387,7 +388,7 @@ data "template_file" "install_tfe_sh" {
     pgsqlhostname    = aws_db_instance.aws7.address
     pgsqlpassword    = var.db_password
     pguser           = aws_db_instance.aws7.username
-    s3bucket         = var.s3bucket
+    s3bucket         = var.s3_bucket
     s3region         = var.region
     cert_pem         = tls_self_signed_cert.aws7.cert_pem
     key_pem          = tls_private_key.aws7.private_key_pem

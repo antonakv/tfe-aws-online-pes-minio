@@ -67,6 +67,7 @@ minio_access_key    = "minio_access_key"
 minio_secret_key    = "minio_secret_key"
 ami_minio           = "ami-0b5de643012fe5385"
 instance_type_minio = "t3.large"
+s3_bucket           = "my-aws7-tfe-data"
 ```
 
 - Change folder to `pre-req`

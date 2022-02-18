@@ -264,11 +264,11 @@ resource "aws_db_instance" "aws7" {
 }
 
 resource "aws_s3_bucket" "aws7" {
-  bucket        = "aakulov-aws7-tfe-data"
+  bucket        = var.s3_bucket
   force_destroy = true
 
   tags = {
-    Name = "aakulov-aws7-tfe-data"
+    Name = var.s3_bucket
   }
 }
 
@@ -345,6 +345,8 @@ data "template_file" "configure_minio_sh" {
   vars = {
     minio_secret_key = var.minio_secret_key
     minio_access_key = var.minio_access_key
+    s3bucket         = var.s3_bucket
+    s3endpoint       = local.s3endpoint
   }
 }
 
@@ -385,7 +387,7 @@ data "template_file" "install_tfe_sh" {
     pgsqlhostname    = aws_db_instance.aws7.address
     pgsqlpassword    = var.db_password
     pguser           = aws_db_instance.aws7.username
-    s3bucket         = aws_s3_bucket.aws7.bucket
+    s3bucket         = var.s3bucket
     s3region         = var.region
     cert_pem         = tls_self_signed_cert.aws7.cert_pem
     key_pem          = tls_private_key.aws7.private_key_pem

@@ -14,3 +14,13 @@ sudo chown -R minio-user: /usr/local/share/minio
 
 sudo systemctl enable minio
 sudo systemctl start minio
+
+mkdir ~/.aws
+
+echo "
+[default]
+aws_access_key_id = \"${minio_access_key}\"
+aws_secret_access_key = \"${minio_secret_key}\"
+" > /home/ubuntu/.aws/credentials
+
+aws s3api create-bucket --acl private --bucket $s3bucket  --endpoint-url $s3endpoint

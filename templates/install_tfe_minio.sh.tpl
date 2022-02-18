@@ -151,6 +151,26 @@ yes | sudo /usr/bin/bash /home/ubuntu/install/install.sh no-proxy private-addres
 exit 0
 " > /home/ubuntu/install/install_tfe.sh
 
+echo "#!/usr/bin/env bash
+  set -x
+  date
+  # health check until app becomes ready
+  while ! curl -ksfS --connect-timeout 5 \"https://$IPADDR/_health_check\"; do
+    sleep 5
+  done
+  date
+" > /home/ubuntu/install/healthcheck.sh
+
+echo "{
+  \"debug\": true
+}
+" > /home/ubuntu/install/daemon.json 
+
+sudo cp /home/ubuntu/install/daemon.json /etc/docker/deamon.json
+
 chmod +x /home/ubuntu/install/install_tfe.sh
+chmod +x /home/ubuntu/install/healthcheck.sh
+
+sh /home/ubuntu/install/healthcheck.sh &> /home/ubuntu/install/hc_tfe.log &
 
 sh /home/ubuntu/install/install_tfe.sh &> /home/ubuntu/install/install_tfe.log

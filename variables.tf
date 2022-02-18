@@ -61,3 +61,6 @@ variable "ami_minio" {
 variable "instance_type_minio" {
   description = "Amazon EC2 Minio instance type"
 }
+variable "s3_bucket" {
+  description = "Name of the Terraform Enterprise S3 bucket"
+}

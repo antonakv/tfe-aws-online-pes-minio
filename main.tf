@@ -347,7 +347,6 @@ data "template_file" "configure_minio_sh" {
     minio_secret_key = var.minio_secret_key
     minio_access_key = var.minio_access_key
     s3bucket         = var.s3_bucket
-    s3endpoint       = local.s3endpointlocal
   }
 }
 

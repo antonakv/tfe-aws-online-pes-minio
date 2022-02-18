@@ -19,8 +19,8 @@ mkdir -p /home/ubuntu/.aws
 
 echo "
 [default]
-aws_access_key_id = \"${minio_access_key}\"
-aws_secret_access_key = \"${minio_secret_key}\"
+aws_access_key_id = ${minio_access_key}
+aws_secret_access_key = ${minio_secret_key}
 " > /home/ubuntu/.aws/credentials
 
 s3endpointlocal=$(hostname -I | awk '{print "http://"$1":9000"}')

@@ -15,7 +15,7 @@ sudo chown -R minio-user: /usr/local/share/minio
 sudo systemctl enable minio
 sudo systemctl start minio
 
-mkdir ~/.aws
+mkdir -p /home/ubuntu/.aws
 
 echo "
 [default]

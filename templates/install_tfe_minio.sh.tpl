@@ -147,6 +147,7 @@ sudo rm -rf /usr/share/keyrings/docker-archive-keyring.gpg
 cp /home/ubuntu/install/replicated.conf /etc/replicated.conf
 cp /home/ubuntu/install/replicated.conf /root/replicated.conf
 chown -R ubuntu: /home/ubuntu/install
+aws s3api create-bucket --acl private --bucket ${s3bucket}  --endpoint-url ${s3endpoint}
 yes | sudo /usr/bin/bash /home/ubuntu/install/install.sh no-proxy private-address=$IPADDR public-address=$IPADDR
 exit 0
 " > /home/ubuntu/install/install_tfe.sh
@@ -177,8 +178,6 @@ echo "
 aws_access_key_id = ${minio_access_key}
 aws_secret_access_key = ${minio_secret_key}
 " > /home/ubuntu/.aws/credentials
-
-aws s3api create-bucket --acl private --bucket ${s3bucket}  --endpoint-url ${s3endpoint}
 
 sh /home/ubuntu/install/healthcheck.sh &> /home/ubuntu/install/hc_tfe.log &
 

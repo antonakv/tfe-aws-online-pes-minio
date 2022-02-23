@@ -181,13 +181,6 @@ sudo cp /home/ubuntu/install/daemon.json /etc/docker/deamon.json
 chmod +x /home/ubuntu/install/install_tfe.sh
 chmod +x /home/ubuntu/install/healthcheck.sh
 
-mkdir -p /home/ubuntu/.aws
-echo "
-[default]
-aws_access_key_id = ${minio_access_key}
-aws_secret_access_key = ${minio_secret_key}
-" > /home/ubuntu/.aws/credentials
-
 sh /home/ubuntu/install/healthcheck.sh &> /home/ubuntu/install/hc_tfe.log &
 
 sh /home/ubuntu/install/install_tfe.sh &> /home/ubuntu/install/install_tfe.log

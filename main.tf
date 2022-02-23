@@ -378,7 +378,7 @@ resource "aws_instance" "aws7_minio" {
   }
 }
 
-data "template_file" "install_tfe_sh" {
+data "template_file" "install_tfe_minio_sh" {
   template = file("templates/install_tfe_minio.sh.tpl")
   vars = {
     enc_password     = var.enc_password
@@ -404,7 +404,7 @@ data "template_cloudinit_config" "aws7_cloudinit" {
   part {
     filename     = "install_tfe.sh"
     content_type = "text/x-shellscript"
-    content      = data.template_file.install_tfe_sh.rendered
+    content      = data.template_file.install_tfe_minio_sh.rendered
   }
 }
 

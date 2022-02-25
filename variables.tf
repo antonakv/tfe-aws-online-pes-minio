@@ -43,6 +43,10 @@ variable "tfe_hostname" {
   type        = string
   description = "Terraform Enterprise hostname"
 }
+variable "tfe_hostname_ssh" {
+  type        = string
+  description = "Terraform Enterprise ssh hostname"
+}
 variable "release_sequence" {
   type        = number
   description = "Terraform Enterprise release sequence number"

@@ -1,5 +1,5 @@
 locals {
-  s3endpoint = format("http://%s:9000", aws_instance.aws7_minio.private_ip)
+  s3endpoint      = format("http://%s:9000", aws_instance.aws7_minio.private_ip)
   s3endpointlocal = "http://127.0.0.1:9000"
 }
 
@@ -233,9 +233,34 @@ resource "aws_security_group" "aakulov-aws7" {
 resource "aws_route53_record" "aws7" {
   zone_id         = "Z077919913NMEBCGB4WS0"
   name            = var.tfe_hostname
+  type            = "CNAME"
+  ttl             = "300"
+  records         = [aws_lb.aws7.dns_name]
+  allow_overwrite = true
+}
+
+resource "aws_route53_record" "aws7_ssh" {
+  zone_id         = "Z077919913NMEBCGB4WS0"
+  name            = var.tfe_hostname_ssh
   type            = "A"
   ttl             = "300"
   records         = [aws_instance.aws7.public_ip]
+  allow_overwrite = true
+}
+
+resource "aws_route53_record" "cert_validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.aws7.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+  zone_id         = "Z077919913NMEBCGB4WS0"
+  ttl             = 60
+  type            = each.value.type
+  name            = each.value.name
+  records         = [each.value.record]
   allow_overwrite = true
 }
 
@@ -430,6 +455,133 @@ resource "aws_instance" "aws7" {
   }
 }
 
+resource "aws_acm_certificate" "aws7" {
+  domain_name       = var.tfe_hostname
+  validation_method = "DNS"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_acm_certificate_validation" "aws7" {
+  certificate_arn = aws_acm_certificate.aws7.arn
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb_target_group" "aws7-443" {
+  name        = "aakulov-aws7-443"
+  port        = 443
+  protocol    = "HTTPS"
+  vpc_id      = aws_vpc.vpc.id
+  target_type = "instance"
+  slow_start  = 400
+  lifecycle {
+    create_before_destroy = true
+  }
+  stickiness {
+    enabled = true
+    type    = "lb_cookie"
+  }
+}
+
+resource "aws_lb_target_group" "aws7-8800" {
+  name        = "aakulov-aws7-8800"
+  port        = 8800
+  protocol    = "HTTPS"
+  vpc_id      = aws_vpc.vpc.id
+  target_type = "instance"
+  slow_start  = 400
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_lb" "aws7" {
+  name                             = "aakulov-aws7"
+  internal                         = false
+  load_balancer_type               = "application"
+  security_groups                  = [aws_security_group.aws7-lb-sg.id]
+  enable_cross_zone_load_balancing = true
+  subnets                          = [aws_subnet.subnet_public1.id, aws_subnet.subnet_public2.id]
+  enable_deletion_protection       = false
+}
+
+resource "aws_lb_listener" "aws7-443" {
+  load_balancer_arn = aws_lb.aws7.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate.aws7.arn
+  ssl_policy        = "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+  depends_on = [
+    aws_lb.aws7
+  ]
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aws7-443.arn
+  }
+}
+
+resource "aws_lb_listener" "aws7-8800" {
+  load_balancer_arn = aws_lb.aws7.arn
+  port              = "8800"
+  protocol          = "HTTPS"
+  certificate_arn   = aws_acm_certificate.aws7.arn
+  ssl_policy        = "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+  depends_on = [
+    aws_lb.aws7
+  ]
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.aws7-8800.arn
+  }
+}
+
+resource "aws_security_group" "aws7-lb-sg" {
+  vpc_id = aws_vpc.vpc.id
+  name   = "aakulov-aws7-lb-sg"
+  tags = {
+    Name = "aakulov-aws7-lb-sg"
+  }
+
+  ingress {
+    from_port   = 8800
+    to_port     = 8800
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Extra security group rules to avoid Cycle error
+
+resource "aws_security_group_rule" "aws7-lb-sg-to-aws7-internal-sg-allow-443" {
+  type                     = "egress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.aws7-internal-sg.id
+  security_group_id        = aws_security_group.aws7-lb-sg.id
+}
+
+resource "aws_security_group_rule" "aws7-lb-sg-to-aws7-internal-sg-allow-8800" {
+  type                     = "egress"
+  from_port                = 8800
+  to_port                  = 8800
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.aws7-internal-sg.id
+  security_group_id        = aws_security_group.aws7-lb-sg.id
+}
+
 output "aws_url" {
   value = aws_route53_record.aws7.name
 }
+

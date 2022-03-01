@@ -61,13 +61,15 @@ cidr_subnet3        = "10.5.3.0/24"
 cidr_subnet4        = "10.5.4.0/24"
 db_password         = "Password1#"
 enc_password        = "Password1#"
-tfe_hostname        = "tfe.host.name"
-release_sequence    = 588
-minio_access_key    = "minio_access_key"
-minio_secret_key    = "minio_secret_key"
+tfe_hostname        = "tfe9.anton.hashicorp-success.com"
+tfe_hostname_jump   = "tfe9jump.anton.hashicorp-success.com"
+release_sequence    = 550
+minio_access_key    = "key"
+minio_secret_key    = "key"
 ami_minio           = "ami-0b5de643012fe5385"
 instance_type_minio = "t3.large"
-s3_bucket           = "my-aws7-tfe-data"
+instance_type_jump  = "t3.medium"
+s3_bucket           = "aakulov-aws9-tfe-data"
 ```
 
 - Change folder to `pre-req`

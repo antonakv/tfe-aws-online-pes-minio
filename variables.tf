@@ -43,9 +43,9 @@ variable "tfe_hostname" {
   type        = string
   description = "Terraform Enterprise hostname"
 }
-variable "tfe_hostname_ssh" {
+variable "tfe_hostname_jump" {
   type        = string
-  description = "Terraform Enterprise ssh hostname"
+  description = "Terraform Enterprise jump hostname"
 }
 variable "release_sequence" {
   type        = number
@@ -64,6 +64,9 @@ variable "ami_minio" {
 }
 variable "instance_type_minio" {
   description = "Amazon EC2 Minio instance type"
+}
+variable "instance_type_jump" {
+  description = "Amazon EC2 Jump host instance type"
 }
 variable "s3_bucket" {
   description = "Name of the Terraform Enterprise S3 bucket"

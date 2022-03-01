@@ -143,7 +143,7 @@ IPADDR=$(hostname -I | awk '{print $1}')
 echo "#!/usr/bin/env bash
 chmod 600 /home/ubuntu/install/server.key
 cd /home/ubuntu/install
-aws s3 cp s3://aakulov-aws7-tfe-tfe . --recursive
+aws s3 cp s3://aakulov-aws9-tfe-tfe . --recursive
 curl -# -o /home/ubuntu/install/install.sh https://install.terraform.io/ptfe/stable
 chmod +x install.sh
 sudo rm -rf /usr/share/keyrings/docker-archive-keyring.gpg

@@ -398,6 +398,7 @@ resource "aws_instance" "aws9" {
   subnet_id                   = aws_subnet.subnet_private1.id
   associate_public_ip_address = true
   user_data                   = data.template_cloudinit_config.aws9_cloudinit.rendered
+  iam_instance_profile        = aws_iam_instance_profile.aakulov-aws9-ec2-s3.id
   depends_on = [
     aws_instance.aws9_minio
   ]
@@ -621,6 +622,61 @@ resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-8800" {
   source_security_group_id = aws_security_group.aws9-internal-sg.id
   security_group_id        = aws_security_group.aws9-lb-sg.id
 }
+
+resource "aws_iam_instance_profile" "aakulov-aws9-ec2-s3" {
+  name = "aakulov-aws9-ec2-s3"
+  role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.name
+}
+
+resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
+  name = "aakulov-aws9-ec2-s3"
+  role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.id
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "VisualEditor0",
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:DeleteObject",
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:GetBucketLocation",
+          "s3:ListBucket"
+        ],
+        "Resource" : "*"
+      },
+      {
+        "Sid" : "VisualEditor1",
+        "Effect" : "Allow",
+        "Action" : "s3:*",
+        "Resource" : aws_s3_bucket.aws9.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
+  name = "aakulov-aws9-iam-role-ec2-s3"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      },
+    ]
+  })
+
+  tags = {
+    tag-key = "aakulov-aws9-iam-role-ec2-s3"
+  }
+}
+
 
 output "aws_jump" {
   value = aws_route53_record.aws9jump.name

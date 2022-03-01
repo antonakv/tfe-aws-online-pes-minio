@@ -650,7 +650,7 @@ resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
         "Sid" : "VisualEditor1",
         "Effect" : "Allow",
         "Action" : "s3:*",
-        "Resource" : aws_s3_bucket.aws9.arn
+        "Resource" : "arn:aws:s3:::aakulov-aws9-tfe-tfe"
       }
     ]
   })

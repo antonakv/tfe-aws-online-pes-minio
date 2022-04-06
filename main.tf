@@ -74,14 +74,29 @@ resource "aws_internet_gateway" "igw" {
 
 resource "aws_eip" "aws9" {
   vpc = true
+  instance = aws_instance.aws9.id
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
 }
 
 resource "aws_eip" "aws9jump" {
   vpc = true
+  instance = aws_instance.aws9jump.id
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
+}
+
+resource "aws_eip" "aws9nat" {
+  vpc = true
+  depends_on = [
+    aws_internet_gateway.igw
+  ]
 }
 
 resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.aws9.id
+  allocation_id = aws_eip.aws9nat.id
   subnet_id     = aws_subnet.subnet_public1.id
   depends_on    = [aws_internet_gateway.igw]
   tags = {
@@ -277,9 +292,9 @@ resource "aws_route53_record" "aws9jump" {
   name            = var.tfe_hostname_jump
   type            = "A"
   ttl             = "300"
-  records         = [aws_instance.aws9jump.public_ip]
+  records         = [aws_eip.aws9jump.public_ip]
   allow_overwrite = true
-  depends_on      = [aws_instance.aws9jump]
+  depends_on      = [aws_instance.aws9jump, aws_eip.aws9jump]
 }
 
 resource "aws_route53_record" "cert_validation" {
@@ -410,6 +425,11 @@ resource "aws_instance" "aws9" {
   tags = {
     Name = "aakulov-aws9"
   }
+}
+
+resource "aws_eip_association" "aws9" {
+  instance_id   = aws_instance.aws9.id
+  allocation_id = aws_eip.aws9.id
 }
 
 resource "aws_eip_association" "aws9jump" {
@@ -684,4 +704,8 @@ output "aws_jump" {
 
 output "aws_url" {
   value = aws_route53_record.aws9.name
+}
+
+output "ec2_instance_ip" {
+  value = aws_instance.aws9.private_ip
 }

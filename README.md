@@ -28,13 +28,13 @@ This manual is dedicated to install Terraform Enterprise online install on AWS w
 - Clone git repository
 
 ```bash
-git clone https://github.com/antonakv/tfe-aws-online-s3db.git
+git clone https://github.com/antonakv/tfe-aws-online-pes.git
 ```
 
 Expected command output looks like this:
 
 ```bash
-Cloning into 'tfe-aws-online-s3db'...
+Cloning into 'tfe-aws-online-pes'...
 remote: Enumerating objects: 12, done.
 remote: Counting objects: 100% (12/12), done.
 remote: Compressing objects: 100% (12/12), done.
@@ -43,41 +43,43 @@ Receiving objects: 100% (12/12), done.
 Resolving deltas: 100% (1/1), done.
 ```
 
-- Change folder to tfe-aws-online-s3db
+- Change folder to tfe-aws-online-pes
 
 ```bash
-cd tfe-aws-online-s3db
+cd tfe-aws-online-pes
 ```
 
 - Create file testing.tfvars with following contents
 
 ```
-key_name             = "aakulov"
-ami                  = "ami-086128e34136c3375"
-instance_type        = "t3.2xlarge"
-db_instance_type     = "db.t3.medium"
-region               = "eu-central-1"
-cidr_vpc             = "10.5.0.0/16"
-cidr_subnet1         = "10.5.1.0/24"
-cidr_subnet2         = "10.5.2.0/24"
-cidr_subnet3         = "10.5.3.0/24"
-cidr_subnet4         = "10.5.4.0/24"
-db_password          = "Password1#"
-enc_password         = "Password1#"
-tfe_hostname         = "tfe9.akulov.cc"
-tfe_hostname_jump    = "tfe9jump.akulov.cc"
-release_sequence     = 607
-minio_access_key     = "PUT_your_Value_Here"
-minio_secret_key     = "PUT_your_Value_Here"
-ami_minio            = "ami-0b5de643012fe5385"
-instance_type_minio  = "t3.large"
-instance_type_jump   = "t3.medium"
-s3_bucket            = "aakulov-aws9-tfe-data"
-cloudflare_api_token = "PUT_your_Value_Here"
-cloudflare_zone_id   = "PUT_your_Value_Here"
-domain_name          = "akulov.cc"
-ssl_cert_path        = "PUT_your_Value_Here"
-ssl_key_path         = "PUT_your_Value_Here"
+key_name                = "aakulov"
+ami                     = "ami-086128e34136c3375"
+instance_type           = "t3.2xlarge"
+db_instance_type        = "db.t3.medium"
+region                  = "eu-central-1"
+cidr_vpc                = "10.5.0.0/16"
+cidr_subnet1            = "10.5.1.0/24"
+cidr_subnet2            = "10.5.2.0/24"
+cidr_subnet3            = "10.5.3.0/24"
+cidr_subnet4            = "10.5.4.0/24"
+db_password             = "PUT_your_Value_Here"
+enc_password            = "PUT_your_Value_Here"
+tfe_hostname            = "PUT_your_Value_Here"
+tfe_hostname_jump       = "PUT_your_Value_Here"
+release_sequence        = 607
+minio_access_key        = "PUT_your_Value_Here"
+minio_secret_key        = "PUT_your_Value_Here"
+ami_minio               = "ami-0b5de643012fe5385"
+instance_type_minio     = "t3.large"
+instance_type_jump      = "t3.medium"
+s3_bucket               = "aakulov-aws9-tfe-data"
+cloudflare_api_token    = "PUT_your_Value_Here"
+cloudflare_zone_id      = "PUT_your_Value_Here"
+domain_name             = "akulov.cc"
+ssl_cert_path           = "PUT_your_Value_Here"
+ssl_key_path            = "PUT_your_Value_Here"
+ssl_chain_path          = "PUT_your_Value_Here"
+ssl_fullchain_cert_path = "PUT_your_Value_Here"
 ```
 
 - Change folder to `pre-req`
@@ -138,9 +140,9 @@ Terraform used the selected providers to generate the following execution plan. 
 
 Terraform will perform the following actions:
 
-  # data.template_cloudinit_config.aws7_cloudinit will be read during apply
+  # data.template_cloudinit_config.aws9_cloudinit will be read during apply
   # (config refers to values not yet known)
- <= data "template_cloudinit_config" "aws7_cloudinit"  {
+ <= data "template_cloudinit_config" "aws9_cloudinit"  {
       + base64_encode = true
       + gzip          = true
       + id            = (known after apply)
@@ -153,21 +155,28 @@ Terraform will perform the following actions:
         }
     }
 
-  # data.template_file.install_tfe_sh will be read during apply
+  # data.template_file.install_tfe_minio_sh will be read during apply
   # (config refers to values not yet known)
- <= data "template_file" "install_tfe_sh"  {
+ <= data "template_file" "install_tfe_minio_sh"  {
       + id       = (known after apply)
       + rendered = (known after apply)
       + template = <<-EOT
             #!/usr/bin/env bash
             mkdir -p /home/ubuntu/install
+            
+            mkdir -p /home/ubuntu/.aws
+            
             echo "
             {
-                \"aws_access_key_id\": {},
-                \"aws_instance_profile\": {
-                    \"value\": \"1\"
+                \"aws_access_key_id\": {
+                    \"value\": \"${minio_access_key}\"
                 },
-                \"aws_secret_access_key\": {},
+                \"aws_instance_profile\": {
+                    \"value\": \"0\"
+                },
+                \"aws_secret_access_key\": {
+                    \"value\": \"${minio_secret_key}\"
+                },
                 \"azure_account_key\": {},
                 \"azure_account_name\": {},
                 \"azure_container\": {},
@@ -260,7 +269,9 @@ Terraform will perform the following actions:
                 \"s3_bucket\": {
                     \"value\": \"${s3bucket}\"
                 },
-                \"s3_endpoint\": {},
+                \"s3_endpoint\": {
+                    \"value\": \"${s3endpoint}\"
+                },
                 \"s3_region\": {
                     \"value\": \"${s3region}\"
                 },
@@ -282,6 +293,7 @@ Terraform will perform the following actions:
                 \"DaemonAuthenticationPassword\": \"Password1#\",
                 \"TlsBootstrapType\":             \"server-path\",
                 \"TlsBootstrapHostname\":         \"${hostname}\",
+                \"ReleaseSequence\":         ${release_sequence},
                 \"TlsBootstrapCert\":             \"/home/ubuntu/install/server.crt\",
                 \"TlsBootstrapKey\":              \"/home/ubuntu/install/server.key\",
                 \"BypassPreflightChecks\":        true,
@@ -294,36 +306,83 @@ Terraform will perform the following actions:
             echo "#!/usr/bin/env bash
             chmod 600 /home/ubuntu/install/server.key
             cd /home/ubuntu/install
-            aws s3 cp s3://aakulov-aws7-tfe-tfe . --recursive
+            aws s3 cp s3://aakulov-aws9-tfe-tfe . --recursive
             curl -# -o /home/ubuntu/install/install.sh https://install.terraform.io/ptfe/stable
             chmod +x install.sh
             sudo rm -rf /usr/share/keyrings/docker-archive-keyring.gpg
             cp /home/ubuntu/install/replicated.conf /etc/replicated.conf
             cp /home/ubuntu/install/replicated.conf /root/replicated.conf
             chown -R ubuntu: /home/ubuntu/install
+            
+            aws configure set aws_access_key_id ${minio_access_key}
+            aws configure set aws_secret_access_key ${minio_secret_key}
+            
+            aws s3api create-bucket --acl private --bucket ${s3bucket}  --endpoint-url ${s3endpoint}
+            aws s3 ls s3://${s3bucket}  --endpoint-url ${s3endpoint}
+            
             yes | sudo /usr/bin/bash /home/ubuntu/install/install.sh no-proxy private-address=$IPADDR public-address=$IPADDR
             exit 0
             " > /home/ubuntu/install/install_tfe.sh
             
+            echo "#!/usr/bin/env bash
+              set -x
+              date
+              # health check until app becomes ready
+              while ! curl -ksfS --connect-timeout 5 \"https://$IPADDR/_health_check\"; do
+                sleep 5
+              done
+              date
+            " > /home/ubuntu/install/healthcheck.sh
+            
+            echo "{
+              \"debug\": true
+            }
+            " > /home/ubuntu/install/daemon.json 
+            
+            sudo cp /home/ubuntu/install/daemon.json /etc/docker/deamon.json
+            
             chmod +x /home/ubuntu/install/install_tfe.sh
+            chmod +x /home/ubuntu/install/healthcheck.sh
+            
+            sh /home/ubuntu/install/healthcheck.sh &> /home/ubuntu/install/hc_tfe.log &
             
             sh /home/ubuntu/install/install_tfe.sh &> /home/ubuntu/install/install_tfe.log
         EOT
       + vars     = {
-          + "cert_pem"      = (known after apply)
-          + "enc_password"  = (sensitive)
-          + "hostname"      = "tfe7.anton.hashicorp-success.com"
-          + "key_pem"       = (sensitive)
-          + "pgsqlhostname" = (known after apply)
-          + "pgsqlpassword" = (sensitive)
-          + "pguser"        = "postgres"
-          + "s3bucket"      = "aakulov-aws7-tfe-data"
-          + "s3region"      = "eu-central-1"
+          + "cert_pem"         = (sensitive)
+          + "enc_password"     = (sensitive)
+          + "hostname"         = "tfe9.akulov.cc"
+          + "key_pem"          = (sensitive)
+          + "minio_access_key" = (sensitive)
+          + "minio_secret_key" = (sensitive)
+          + "pgsqlhostname"    = (known after apply)
+          + "pgsqlpassword"    = (sensitive)
+          + "pguser"           = "postgres"
+          + "release_sequence" = "607"
+          + "s3bucket"         = "aakulov-aws9-tfe-data"
+          + "s3endpoint"       = (known after apply)
+          + "s3region"         = "eu-central-1"
         }
     }
 
-  # aws_db_instance.aws7 will be created
-  + resource "aws_db_instance" "aws7" {
+  # aws_acm_certificate.aws9 will be created
+  + resource "aws_acm_certificate" "aws9" {
+      + arn                       = (known after apply)
+      + certificate_body          = (sensitive)
+      + certificate_chain         = (sensitive)
+      + domain_name               = (known after apply)
+      + domain_validation_options = (known after apply)
+      + id                        = (known after apply)
+      + private_key               = (sensitive value)
+      + status                    = (known after apply)
+      + subject_alternative_names = (known after apply)
+      + tags_all                  = (known after apply)
+      + validation_emails         = (known after apply)
+      + validation_method         = (known after apply)
+    }
+
+  # aws_db_instance.aws9 will be created
+  + resource "aws_db_instance" "aws9" {
       + address                               = (known after apply)
       + allocated_storage                     = 20
       + apply_immediately                     = (known after apply)
@@ -335,7 +394,8 @@ Terraform will perform the following actions:
       + ca_cert_identifier                    = (known after apply)
       + character_set_name                    = (known after apply)
       + copy_tags_to_snapshot                 = false
-      + db_subnet_group_name                  = "aakulov-aws7"
+      + db_name                               = "mydbtfe"
+      + db_subnet_group_name                  = "aakulov-aws9"
       + delete_automated_backups              = true
       + endpoint                              = (known after apply)
       + engine                                = "postgres"
@@ -354,7 +414,7 @@ Terraform will perform the following actions:
       + monitoring_interval                   = 0
       + monitoring_role_arn                   = (known after apply)
       + multi_az                              = (known after apply)
-      + name                                  = "mydbtfe"
+      + name                                  = (known after apply)
       + nchar_character_set_name              = (known after apply)
       + option_group_name                     = (known after apply)
       + parameter_group_name                  = (known after apply)
@@ -364,6 +424,7 @@ Terraform will perform the following actions:
       + performance_insights_retention_period = (known after apply)
       + port                                  = (known after apply)
       + publicly_accessible                   = false
+      + replica_mode                          = (known after apply)
       + replicas                              = (known after apply)
       + resource_id                           = (known after apply)
       + skip_final_snapshot                   = true
@@ -371,34 +432,34 @@ Terraform will perform the following actions:
       + status                                = (known after apply)
       + storage_type                          = (known after apply)
       + tags                                  = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + tags_all                              = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + timezone                              = (known after apply)
       + username                              = "postgres"
       + vpc_security_group_ids                = (known after apply)
     }
 
-  # aws_db_subnet_group.aws7 will be created
-  + resource "aws_db_subnet_group" "aws7" {
+  # aws_db_subnet_group.aws9 will be created
+  + resource "aws_db_subnet_group" "aws9" {
       + arn         = (known after apply)
       + description = "Managed by Terraform"
       + id          = (known after apply)
-      + name        = "aakulov-aws7"
+      + name        = "aakulov-aws9"
       + name_prefix = (known after apply)
       + subnet_ids  = (known after apply)
       + tags        = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + tags_all    = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
     }
 
-  # aws_eip.aws7 will be created
-  + resource "aws_eip" "aws7" {
+  # aws_eip.aws9 will be created
+  + resource "aws_eip" "aws9" {
       + allocation_id        = (known after apply)
       + association_id       = (known after apply)
       + carrier_ip           = (known after apply)
@@ -417,20 +478,80 @@ Terraform will perform the following actions:
       + vpc                  = true
     }
 
-  # aws_iam_instance_profile.aakulov-aws7-ec2-s3 will be created
-  + resource "aws_iam_instance_profile" "aakulov-aws7-ec2-s3" {
+  # aws_eip.aws9jump will be created
+  + resource "aws_eip" "aws9jump" {
+      + allocation_id        = (known after apply)
+      + association_id       = (known after apply)
+      + carrier_ip           = (known after apply)
+      + customer_owned_ip    = (known after apply)
+      + domain               = (known after apply)
+      + id                   = (known after apply)
+      + instance             = (known after apply)
+      + network_border_group = (known after apply)
+      + network_interface    = (known after apply)
+      + private_dns          = (known after apply)
+      + private_ip           = (known after apply)
+      + public_dns           = (known after apply)
+      + public_ip            = (known after apply)
+      + public_ipv4_pool     = (known after apply)
+      + tags_all             = (known after apply)
+      + vpc                  = true
+    }
+
+  # aws_eip.aws9nat will be created
+  + resource "aws_eip" "aws9nat" {
+      + allocation_id        = (known after apply)
+      + association_id       = (known after apply)
+      + carrier_ip           = (known after apply)
+      + customer_owned_ip    = (known after apply)
+      + domain               = (known after apply)
+      + id                   = (known after apply)
+      + instance             = (known after apply)
+      + network_border_group = (known after apply)
+      + network_interface    = (known after apply)
+      + private_dns          = (known after apply)
+      + private_ip           = (known after apply)
+      + public_dns           = (known after apply)
+      + public_ip            = (known after apply)
+      + public_ipv4_pool     = (known after apply)
+      + tags_all             = (known after apply)
+      + vpc                  = true
+    }
+
+  # aws_eip_association.aws9 will be created
+  + resource "aws_eip_association" "aws9" {
+      + allocation_id        = (known after apply)
+      + id                   = (known after apply)
+      + instance_id          = (known after apply)
+      + network_interface_id = (known after apply)
+      + private_ip_address   = (known after apply)
+      + public_ip            = (known after apply)
+    }
+
+  # aws_eip_association.aws9jump will be created
+  + resource "aws_eip_association" "aws9jump" {
+      + allocation_id        = (known after apply)
+      + id                   = (known after apply)
+      + instance_id          = (known after apply)
+      + network_interface_id = (known after apply)
+      + private_ip_address   = (known after apply)
+      + public_ip            = (known after apply)
+    }
+
+  # aws_iam_instance_profile.aakulov-aws9-ec2-s3 will be created
+  + resource "aws_iam_instance_profile" "aakulov-aws9-ec2-s3" {
       + arn         = (known after apply)
       + create_date = (known after apply)
       + id          = (known after apply)
-      + name        = "aakulov-aws7-ec2-s3"
+      + name        = "aakulov-aws9-ec2-s3"
       + path        = "/"
-      + role        = "aakulov-aws7-iam-role-ec2-s3"
+      + role        = "aakulov-aws9-iam-role-ec2-s3"
       + tags_all    = (known after apply)
       + unique_id   = (known after apply)
     }
 
-  # aws_iam_role.aakulov-aws7-iam-role-ec2-s3 will be created
-  + resource "aws_iam_role" "aakulov-aws7-iam-role-ec2-s3" {
+  # aws_iam_role.aakulov-aws9-iam-role-ec2-s3 will be created
+  + resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
       + arn                   = (known after apply)
       + assume_role_policy    = jsonencode(
             {
@@ -452,14 +573,14 @@ Terraform will perform the following actions:
       + id                    = (known after apply)
       + managed_policy_arns   = (known after apply)
       + max_session_duration  = 3600
-      + name                  = "aakulov-aws7-iam-role-ec2-s3"
+      + name                  = "aakulov-aws9-iam-role-ec2-s3"
       + name_prefix           = (known after apply)
       + path                  = "/"
       + tags                  = {
-          + "tag-key" = "aakulov-aws7-iam-role-ec2-s3"
+          + "tag-key" = "aakulov-aws9-iam-role-ec2-s3"
         }
       + tags_all              = {
-          + "tag-key" = "aakulov-aws7-iam-role-ec2-s3"
+          + "tag-key" = "aakulov-aws9-iam-role-ec2-s3"
         }
       + unique_id             = (known after apply)
 
@@ -469,16 +590,40 @@ Terraform will perform the following actions:
         }
     }
 
-  # aws_iam_role_policy.aakulov-aws7-ec2-s3 will be created
-  + resource "aws_iam_role_policy" "aakulov-aws7-ec2-s3" {
+  # aws_iam_role_policy.aakulov-aws9-ec2-s3 will be created
+  + resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
       + id     = (known after apply)
-      + name   = "aakulov-aws7-ec2-s3"
-      + policy = (known after apply)
+      + name   = "aakulov-aws9-ec2-s3"
+      + policy = jsonencode(
+            {
+              + Statement = [
+                  + {
+                      + Action   = [
+                          + "s3:DeleteObject",
+                          + "s3:GetObject",
+                          + "s3:PutObject",
+                          + "s3:GetBucketLocation",
+                          + "s3:ListBucket",
+                        ]
+                      + Effect   = "Allow"
+                      + Resource = "*"
+                      + Sid      = "VisualEditor0"
+                    },
+                  + {
+                      + Action   = "s3:*"
+                      + Effect   = "Allow"
+                      + Resource = "arn:aws:s3:::aakulov-aws9-tfe-tfe"
+                      + Sid      = "VisualEditor1"
+                    },
+                ]
+              + Version   = "2012-10-17"
+            }
+        )
       + role   = (known after apply)
     }
 
-  # aws_instance.aws7 will be created
-  + resource "aws_instance" "aws7" {
+  # aws_instance.aws9 will be created
+  + resource "aws_instance" "aws9" {
       + ami                                  = "ami-086128e34136c3375"
       + arn                                  = (known after apply)
       + associate_public_ip_address          = true
@@ -512,21 +657,129 @@ Terraform will perform the following actions:
       + source_dest_check                    = true
       + subnet_id                            = (known after apply)
       + tags                                 = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + tags_all                             = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + tenancy                              = (known after apply)
       + user_data                            = (known after apply)
       + user_data_base64                     = (known after apply)
+      + user_data_replace_on_change          = false
       + vpc_security_group_ids               = (known after apply)
 
       + capacity_reservation_specification {
           + capacity_reservation_preference = (known after apply)
 
           + capacity_reservation_target {
-              + capacity_reservation_id = (known after apply)
+              + capacity_reservation_id                 = (known after apply)
+              + capacity_reservation_resource_group_arn = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_put_response_hop_limit = 2
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = "disabled"
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_card_index    = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+  # aws_instance.aws9_minio will be created
+  + resource "aws_instance" "aws9_minio" {
+      + ami                                  = "ami-0b5de643012fe5385"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = true
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + disable_api_termination              = (known after apply)
+      + ebs_optimized                        = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t3.large"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "aakulov"
+      + monitoring                           = (known after apply)
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + placement_partition_number           = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "aakulov-aws9-minio"
+        }
+      + tags_all                             = {
+          + "Name" = "aakulov-aws9-minio"
+        }
+      + tenancy                              = (known after apply)
+      + user_data                            = "5091584e22574e4a9da1dcb2148ed69c20e2bd05"
+      + user_data_base64                     = (known after apply)
+      + user_data_replace_on_change          = false
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id                 = (known after apply)
+              + capacity_reservation_resource_group_arn = (known after apply)
             }
         }
 
@@ -558,11 +811,119 @@ Terraform will perform the following actions:
           + http_endpoint               = "enabled"
           + http_put_response_hop_limit = (known after apply)
           + http_tokens                 = "required"
+          + instance_metadata_tags      = "disabled"
         }
 
       + network_interface {
           + delete_on_termination = (known after apply)
           + device_index          = (known after apply)
+          + network_card_index    = (known after apply)
+          + network_interface_id  = (known after apply)
+        }
+
+      + root_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+    }
+
+  # aws_instance.aws9jump will be created
+  + resource "aws_instance" "aws9jump" {
+      + ami                                  = "ami-086128e34136c3375"
+      + arn                                  = (known after apply)
+      + associate_public_ip_address          = true
+      + availability_zone                    = (known after apply)
+      + cpu_core_count                       = (known after apply)
+      + cpu_threads_per_core                 = (known after apply)
+      + disable_api_termination              = (known after apply)
+      + ebs_optimized                        = (known after apply)
+      + get_password_data                    = false
+      + host_id                              = (known after apply)
+      + id                                   = (known after apply)
+      + instance_initiated_shutdown_behavior = (known after apply)
+      + instance_state                       = (known after apply)
+      + instance_type                        = "t3.medium"
+      + ipv6_address_count                   = (known after apply)
+      + ipv6_addresses                       = (known after apply)
+      + key_name                             = "aakulov"
+      + monitoring                           = (known after apply)
+      + outpost_arn                          = (known after apply)
+      + password_data                        = (known after apply)
+      + placement_group                      = (known after apply)
+      + placement_partition_number           = (known after apply)
+      + primary_network_interface_id         = (known after apply)
+      + private_dns                          = (known after apply)
+      + private_ip                           = (known after apply)
+      + public_dns                           = (known after apply)
+      + public_ip                            = (known after apply)
+      + secondary_private_ips                = (known after apply)
+      + security_groups                      = (known after apply)
+      + source_dest_check                    = true
+      + subnet_id                            = (known after apply)
+      + tags                                 = {
+          + "Name" = "aakulov-aws9jump"
+        }
+      + tags_all                             = {
+          + "Name" = "aakulov-aws9jump"
+        }
+      + tenancy                              = (known after apply)
+      + user_data                            = (known after apply)
+      + user_data_base64                     = (known after apply)
+      + user_data_replace_on_change          = false
+      + vpc_security_group_ids               = (known after apply)
+
+      + capacity_reservation_specification {
+          + capacity_reservation_preference = (known after apply)
+
+          + capacity_reservation_target {
+              + capacity_reservation_id                 = (known after apply)
+              + capacity_reservation_resource_group_arn = (known after apply)
+            }
+        }
+
+      + ebs_block_device {
+          + delete_on_termination = (known after apply)
+          + device_name           = (known after apply)
+          + encrypted             = (known after apply)
+          + iops                  = (known after apply)
+          + kms_key_id            = (known after apply)
+          + snapshot_id           = (known after apply)
+          + tags                  = (known after apply)
+          + throughput            = (known after apply)
+          + volume_id             = (known after apply)
+          + volume_size           = (known after apply)
+          + volume_type           = (known after apply)
+        }
+
+      + enclave_options {
+          + enabled = (known after apply)
+        }
+
+      + ephemeral_block_device {
+          + device_name  = (known after apply)
+          + no_device    = (known after apply)
+          + virtual_name = (known after apply)
+        }
+
+      + metadata_options {
+          + http_endpoint               = "enabled"
+          + http_put_response_hop_limit = 2
+          + http_tokens                 = "required"
+          + instance_metadata_tags      = "disabled"
+        }
+
+      + network_interface {
+          + delete_on_termination = (known after apply)
+          + device_index          = (known after apply)
+          + network_card_index    = (known after apply)
           + network_interface_id  = (known after apply)
         }
 
@@ -586,12 +947,219 @@ Terraform will perform the following actions:
       + id       = (known after apply)
       + owner_id = (known after apply)
       + tags     = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + tags_all = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + vpc_id   = (known after apply)
+    }
+
+  # aws_lb.aws9 will be created
+  + resource "aws_lb" "aws9" {
+      + arn                        = (known after apply)
+      + arn_suffix                 = (known after apply)
+      + desync_mitigation_mode     = "defensive"
+      + dns_name                   = (known after apply)
+      + drop_invalid_header_fields = false
+      + enable_deletion_protection = false
+      + enable_http2               = false
+      + enable_waf_fail_open       = false
+      + id                         = (known after apply)
+      + idle_timeout               = 60
+      + internal                   = false
+      + ip_address_type            = (known after apply)
+      + load_balancer_type         = "application"
+      + name                       = "aakulov-aws9"
+      + security_groups            = (known after apply)
+      + subnets                    = (known after apply)
+      + tags_all                   = (known after apply)
+      + vpc_id                     = (known after apply)
+      + zone_id                    = (known after apply)
+
+      + subnet_mapping {
+          + allocation_id        = (known after apply)
+          + ipv6_address         = (known after apply)
+          + outpost_id           = (known after apply)
+          + private_ipv4_address = (known after apply)
+          + subnet_id            = (known after apply)
+        }
+    }
+
+  # aws_lb_listener.aws9-443 will be created
+  + resource "aws_lb_listener" "aws9-443" {
+      + arn               = (known after apply)
+      + certificate_arn   = (known after apply)
+      + id                = (known after apply)
+      + load_balancer_arn = (known after apply)
+      + port              = 443
+      + protocol          = "HTTPS"
+      + ssl_policy        = "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+      + tags_all          = (known after apply)
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+    }
+
+  # aws_lb_listener.aws9-8800 will be created
+  + resource "aws_lb_listener" "aws9-8800" {
+      + arn               = (known after apply)
+      + certificate_arn   = (known after apply)
+      + id                = (known after apply)
+      + load_balancer_arn = (known after apply)
+      + port              = 8800
+      + protocol          = "HTTPS"
+      + ssl_policy        = "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+      + tags_all          = (known after apply)
+
+      + default_action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+    }
+
+  # aws_lb_listener_rule.aws9-443 will be created
+  + resource "aws_lb_listener_rule" "aws9-443" {
+      + arn          = (known after apply)
+      + id           = (known after apply)
+      + listener_arn = (known after apply)
+      + priority     = (known after apply)
+      + tags_all     = (known after apply)
+
+      + action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + condition {
+          + host_header {
+              + values = [
+                  + "tfe9.akulov.cc",
+                ]
+            }
+        }
+    }
+
+  # aws_lb_listener_rule.aws9-8800 will be created
+  + resource "aws_lb_listener_rule" "aws9-8800" {
+      + arn          = (known after apply)
+      + id           = (known after apply)
+      + listener_arn = (known after apply)
+      + priority     = (known after apply)
+      + tags_all     = (known after apply)
+
+      + action {
+          + order            = (known after apply)
+          + target_group_arn = (known after apply)
+          + type             = "forward"
+        }
+
+      + condition {
+          + host_header {
+              + values = [
+                  + "tfe9.akulov.cc",
+                ]
+            }
+        }
+    }
+
+  # aws_lb_target_group.aws9-443 will be created
+  + resource "aws_lb_target_group" "aws9-443" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = false
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancing_algorithm_type      = (known after apply)
+      + name                               = "aakulov-aws9-443"
+      + port                               = 443
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTPS"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + slow_start                         = 900
+      + tags_all                           = (known after apply)
+      + target_type                        = "instance"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 6
+          + interval            = 5
+          + matcher             = "200,302,303"
+          + path                = "/"
+          + port                = "8800"
+          + protocol            = "HTTPS"
+          + timeout             = 2
+          + unhealthy_threshold = 2
+        }
+
+      + stickiness {
+          + cookie_duration = 86400
+          + enabled         = true
+          + type            = "lb_cookie"
+        }
+    }
+
+  # aws_lb_target_group.aws9-8800 will be created
+  + resource "aws_lb_target_group" "aws9-8800" {
+      + arn                                = (known after apply)
+      + arn_suffix                         = (known after apply)
+      + connection_termination             = false
+      + deregistration_delay               = "300"
+      + id                                 = (known after apply)
+      + lambda_multi_value_headers_enabled = false
+      + load_balancing_algorithm_type      = (known after apply)
+      + name                               = "aakulov-aws9-8800"
+      + port                               = 8800
+      + preserve_client_ip                 = (known after apply)
+      + protocol                           = "HTTPS"
+      + protocol_version                   = (known after apply)
+      + proxy_protocol_v2                  = false
+      + slow_start                         = 900
+      + tags_all                           = (known after apply)
+      + target_type                        = "instance"
+      + vpc_id                             = (known after apply)
+
+      + health_check {
+          + enabled             = true
+          + healthy_threshold   = 6
+          + interval            = 5
+          + matcher             = "200,302,303"
+          + path                = "/"
+          + port                = "8800"
+          + protocol            = "HTTPS"
+          + timeout             = 2
+          + unhealthy_threshold = 2
+        }
+
+      + stickiness {
+          + cookie_duration = 86400
+          + enabled         = true
+          + type            = "lb_cookie"
+        }
+    }
+
+  # aws_lb_target_group_attachment.aws9-443 will be created
+  + resource "aws_lb_target_group_attachment" "aws9-443" {
+      + id               = (known after apply)
+      + port             = 443
+      + target_group_arn = (known after apply)
+      + target_id        = (known after apply)
+    }
+
+  # aws_lb_target_group_attachment.aws9-8800 will be created
+  + resource "aws_lb_target_group_attachment" "aws9-8800" {
+      + id               = (known after apply)
+      + port             = 8800
+      + target_group_arn = (known after apply)
+      + target_id        = (known after apply)
     }
 
   # aws_nat_gateway.nat will be created
@@ -604,27 +1172,15 @@ Terraform will perform the following actions:
       + public_ip            = (known after apply)
       + subnet_id            = (known after apply)
       + tags                 = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
       + tags_all             = {
-          + "Name" = "aakulov-aws7"
+          + "Name" = "aakulov-aws9"
         }
     }
 
-  # aws_route53_record.aws7 will be created
-  + resource "aws_route53_record" "aws7" {
-      + allow_overwrite = true
-      + fqdn            = (known after apply)
-      + id              = (known after apply)
-      + name            = "tfe7.anton.hashicorp-success.com"
-      + records         = (known after apply)
-      + ttl             = 300
-      + type            = "A"
-      + zone_id         = "Z077919913NMEBCGB4WS0"
-    }
-
-  # aws_route_table.aws7-private will be created
-  + resource "aws_route_table" "aws7-private" {
+  # aws_route_table.aws9-private will be created
+  + resource "aws_route_table" "aws9-private" {
       + arn              = (known after apply)
       + id               = (known after apply)
       + owner_id         = (known after apply)
@@ -633,6 +1189,7 @@ Terraform will perform the following actions:
           + {
               + carrier_gateway_id         = ""
               + cidr_block                 = "0.0.0.0/0"
+              + core_network_arn           = ""
               + destination_prefix_list_id = ""
               + egress_only_gateway_id     = ""
               + gateway_id                 = ""
@@ -647,16 +1204,16 @@ Terraform will perform the following actions:
             },
         ]
       + tags             = {
-          + "Name" = "aakulov-aws7-private"
+          + "Name" = "aakulov-aws9-private"
         }
       + tags_all         = {
-          + "Name" = "aakulov-aws7-private"
+          + "Name" = "aakulov-aws9-private"
         }
       + vpc_id           = (known after apply)
     }
 
-  # aws_route_table.aws7-public will be created
-  + resource "aws_route_table" "aws7-public" {
+  # aws_route_table.aws9-public will be created
+  + resource "aws_route_table" "aws9-public" {
       + arn              = (known after apply)
       + id               = (known after apply)
       + owner_id         = (known after apply)
@@ -665,6 +1222,7 @@ Terraform will perform the following actions:
           + {
               + carrier_gateway_id         = ""
               + cidr_block                 = "0.0.0.0/0"
+              + core_network_arn           = ""
               + destination_prefix_list_id = ""
               + egress_only_gateway_id     = ""
               + gateway_id                 = (known after apply)
@@ -679,68 +1237,241 @@ Terraform will perform the following actions:
             },
         ]
       + tags             = {
-          + "Name" = "aakulov-aws7-public"
+          + "Name" = "aakulov-aws9-public"
         }
       + tags_all         = {
-          + "Name" = "aakulov-aws7-public"
+          + "Name" = "aakulov-aws9-public"
         }
       + vpc_id           = (known after apply)
     }
 
-  # aws_route_table_association.aws7-private will be created
-  + resource "aws_route_table_association" "aws7-private" {
+  # aws_route_table_association.aws9-private will be created
+  + resource "aws_route_table_association" "aws9-private" {
       + id             = (known after apply)
       + route_table_id = (known after apply)
       + subnet_id      = (known after apply)
     }
 
-  # aws_route_table_association.aws7-public will be created
-  + resource "aws_route_table_association" "aws7-public" {
+  # aws_route_table_association.aws9-public will be created
+  + resource "aws_route_table_association" "aws9-public" {
       + id             = (known after apply)
       + route_table_id = (known after apply)
       + subnet_id      = (known after apply)
     }
 
-  # aws_s3_bucket.aws7 will be created
-  + resource "aws_s3_bucket" "aws7" {
-      + acceleration_status         = (known after apply)
-      + acl                         = "private"
-      + arn                         = (known after apply)
-      + bucket                      = "aakulov-aws7-tfe-data"
-      + bucket_domain_name          = (known after apply)
-      + bucket_regional_domain_name = (known after apply)
-      + force_destroy               = true
-      + hosted_zone_id              = (known after apply)
-      + id                          = (known after apply)
-      + region                      = (known after apply)
-      + request_payer               = (known after apply)
-      + tags                        = {
-          + "Name" = "aakulov-aws7-tfe-data"
+  # aws_security_group.aws9-internal-sg will be created
+  + resource "aws_security_group" "aws9-internal-sg" {
+      + arn                    = (known after apply)
+      + description            = "Managed by Terraform"
+      + egress                 = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 0
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "-1"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 0
+            },
+        ]
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = -1
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "icmp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = -1
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 22
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 22
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 443
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 443
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 8800
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8800
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 22
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 22
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 443
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 443
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 443
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = true
+              + to_port          = 443
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 5432
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = true
+              + to_port          = 5432
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 8800
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = (known after apply)
+              + self             = false
+              + to_port          = 8800
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 8800
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = true
+              + to_port          = 8800
+            },
+          + {
+              + cidr_blocks      = []
+              + description      = ""
+              + from_port        = 9000
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = true
+              + to_port          = 9000
+            },
+        ]
+      + name                   = "aakulov-aws9-internal-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "aakulov-aws9-internal-sg"
         }
-      + tags_all                    = {
-          + "Name" = "aakulov-aws7-tfe-data"
+      + tags_all               = {
+          + "Name" = "aakulov-aws9-internal-sg"
         }
-      + website_domain              = (known after apply)
-      + website_endpoint            = (known after apply)
-
-      + versioning {
-          + enabled    = true
-          + mfa_delete = false
-        }
+      + vpc_id                 = (known after apply)
     }
 
-  # aws_s3_bucket_public_access_block.aws7 will be created
-  + resource "aws_s3_bucket_public_access_block" "aws7" {
-      + block_public_acls       = true
-      + block_public_policy     = true
-      + bucket                  = (known after apply)
-      + id                      = (known after apply)
-      + ignore_public_acls      = true
-      + restrict_public_buckets = true
+  # aws_security_group.aws9-lb-sg will be created
+  + resource "aws_security_group" "aws9-lb-sg" {
+      + arn                    = (known after apply)
+      + description            = "Managed by Terraform"
+      + egress                 = (known after apply)
+      + id                     = (known after apply)
+      + ingress                = [
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 443
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 443
+            },
+          + {
+              + cidr_blocks      = [
+                  + "0.0.0.0/0",
+                ]
+              + description      = ""
+              + from_port        = 8800
+              + ipv6_cidr_blocks = []
+              + prefix_list_ids  = []
+              + protocol         = "tcp"
+              + security_groups  = []
+              + self             = false
+              + to_port          = 8800
+            },
+        ]
+      + name                   = "aakulov-aws9-lb-sg"
+      + name_prefix            = (known after apply)
+      + owner_id               = (known after apply)
+      + revoke_rules_on_delete = false
+      + tags                   = {
+          + "Name" = "aakulov-aws9-lb-sg"
+        }
+      + tags_all               = {
+          + "Name" = "aakulov-aws9-lb-sg"
+        }
+      + vpc_id                 = (known after apply)
     }
 
-  # aws_security_group.aakulov-aws7 will be created
-  + resource "aws_security_group" "aakulov-aws7" {
+  # aws_security_group.aws9-public-sg will be created
+  + resource "aws_security_group" "aws9-public-sg" {
       + arn                    = (known after apply)
       + description            = "Managed by Terraform"
       + egress                 = [
@@ -812,234 +1543,191 @@ Terraform will perform the following actions:
               + self             = false
               + to_port          = 8800
             },
-          + {
-              + cidr_blocks      = []
-              + description      = ""
-              + from_port        = 5432
-              + ipv6_cidr_blocks = []
-              + prefix_list_ids  = []
-              + protocol         = "tcp"
-              + security_groups  = []
-              + self             = true
-              + to_port          = 5432
-            },
         ]
-      + name                   = "aakulov-aws7-sg"
+      + name                   = "aakulov-aws9-public-sg"
       + name_prefix            = (known after apply)
       + owner_id               = (known after apply)
       + revoke_rules_on_delete = false
       + tags                   = {
-          + "Name" = "aakulov-aws7-sg"
+          + "Name" = "aakulov-aws9-public-sg"
         }
       + tags_all               = {
-          + "Name" = "aakulov-aws7-sg"
+          + "Name" = "aakulov-aws9-public-sg"
         }
       + vpc_id                 = (known after apply)
     }
 
-  # aws_security_group.aws7-internal-sg will be created
-  + resource "aws_security_group" "aws7-internal-sg" {
-      + arn                    = (known after apply)
-      + description            = "Managed by Terraform"
-      + egress                 = [
-          + {
-              + cidr_blocks      = [
-                  + "0.0.0.0/0",
-                ]
-              + description      = ""
-              + from_port        = 0
-              + ipv6_cidr_blocks = []
-              + prefix_list_ids  = []
-              + protocol         = "-1"
-              + security_groups  = []
-              + self             = false
-              + to_port          = 0
-            },
-        ]
-      + id                     = (known after apply)
-      + ingress                = [
-          + {
-              + cidr_blocks      = [
-                  + "0.0.0.0/0",
-                ]
-              + description      = ""
-              + from_port        = -1
-              + ipv6_cidr_blocks = []
-              + prefix_list_ids  = []
-              + protocol         = "icmp"
-              + security_groups  = []
-              + self             = false
-              + to_port          = -1
-            },
-          + {
-              + cidr_blocks      = [
-                  + "0.0.0.0/0",
-                ]
-              + description      = ""
-              + from_port        = 22
-              + ipv6_cidr_blocks = []
-              + prefix_list_ids  = []
-              + protocol         = "tcp"
-              + security_groups  = []
-              + self             = false
-              + to_port          = 22
-            },
-          + {
-              + cidr_blocks      = [
-                  + "0.0.0.0/0",
-                ]
-              + description      = ""
-              + from_port        = 443
-              + ipv6_cidr_blocks = []
-              + prefix_list_ids  = []
-              + protocol         = "tcp"
-              + security_groups  = []
-              + self             = false
-              + to_port          = 443
-            },
-        ]
-      + name                   = "aakulov-aws7-internal-sg"
-      + name_prefix            = (known after apply)
-      + owner_id               = (known after apply)
-      + revoke_rules_on_delete = false
-      + tags                   = {
-          + "Name" = "aakulov-aws7-internal-sg"
-        }
-      + tags_all               = {
-          + "Name" = "aakulov-aws7-internal-sg"
-        }
-      + vpc_id                 = (known after apply)
+  # aws_security_group_rule.aws9-lb-sg-to-aws9-internal-sg-allow-443 will be created
+  + resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-443" {
+      + from_port                = 443
+      + id                       = (known after apply)
+      + protocol                 = "tcp"
+      + security_group_id        = (known after apply)
+      + self                     = false
+      + source_security_group_id = (known after apply)
+      + to_port                  = 443
+      + type                     = "egress"
+    }
+
+  # aws_security_group_rule.aws9-lb-sg-to-aws9-internal-sg-allow-8800 will be created
+  + resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-8800" {
+      + from_port                = 8800
+      + id                       = (known after apply)
+      + protocol                 = "tcp"
+      + security_group_id        = (known after apply)
+      + self                     = false
+      + source_security_group_id = (known after apply)
+      + to_port                  = 8800
+      + type                     = "egress"
     }
 
   # aws_subnet.subnet_private1 will be created
   + resource "aws_subnet" "subnet_private1" {
-      + arn                             = (known after apply)
-      + assign_ipv6_address_on_creation = false
-      + availability_zone               = "eu-central-1b"
-      + availability_zone_id            = (known after apply)
-      + cidr_block                      = "10.5.1.0/24"
-      + id                              = (known after apply)
-      + ipv6_cidr_block_association_id  = (known after apply)
-      + map_public_ip_on_launch         = false
-      + owner_id                        = (known after apply)
-      + tags_all                        = (known after apply)
-      + vpc_id                          = (known after apply)
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "eu-central-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.5.1.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags_all                                       = (known after apply)
+      + vpc_id                                         = (known after apply)
     }
 
   # aws_subnet.subnet_private2 will be created
   + resource "aws_subnet" "subnet_private2" {
-      + arn                             = (known after apply)
-      + assign_ipv6_address_on_creation = false
-      + availability_zone               = "eu-central-1c"
-      + availability_zone_id            = (known after apply)
-      + cidr_block                      = "10.5.3.0/24"
-      + id                              = (known after apply)
-      + ipv6_cidr_block_association_id  = (known after apply)
-      + map_public_ip_on_launch         = false
-      + owner_id                        = (known after apply)
-      + tags_all                        = (known after apply)
-      + vpc_id                          = (known after apply)
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "eu-central-1c"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.5.3.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags_all                                       = (known after apply)
+      + vpc_id                                         = (known after apply)
     }
 
   # aws_subnet.subnet_public1 will be created
   + resource "aws_subnet" "subnet_public1" {
-      + arn                             = (known after apply)
-      + assign_ipv6_address_on_creation = false
-      + availability_zone               = "eu-central-1b"
-      + availability_zone_id            = (known after apply)
-      + cidr_block                      = "10.5.2.0/24"
-      + id                              = (known after apply)
-      + ipv6_cidr_block_association_id  = (known after apply)
-      + map_public_ip_on_launch         = false
-      + owner_id                        = (known after apply)
-      + tags_all                        = (known after apply)
-      + vpc_id                          = (known after apply)
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "eu-central-1b"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.5.2.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags_all                                       = (known after apply)
+      + vpc_id                                         = (known after apply)
     }
 
   # aws_subnet.subnet_public2 will be created
   + resource "aws_subnet" "subnet_public2" {
-      + arn                             = (known after apply)
-      + assign_ipv6_address_on_creation = false
-      + availability_zone               = "eu-central-1c"
-      + availability_zone_id            = (known after apply)
-      + cidr_block                      = "10.5.4.0/24"
-      + id                              = (known after apply)
-      + ipv6_cidr_block_association_id  = (known after apply)
-      + map_public_ip_on_launch         = false
-      + owner_id                        = (known after apply)
-      + tags_all                        = (known after apply)
-      + vpc_id                          = (known after apply)
+      + arn                                            = (known after apply)
+      + assign_ipv6_address_on_creation                = false
+      + availability_zone                              = "eu-central-1c"
+      + availability_zone_id                           = (known after apply)
+      + cidr_block                                     = "10.5.4.0/24"
+      + enable_dns64                                   = false
+      + enable_resource_name_dns_a_record_on_launch    = false
+      + enable_resource_name_dns_aaaa_record_on_launch = false
+      + id                                             = (known after apply)
+      + ipv6_cidr_block_association_id                 = (known after apply)
+      + ipv6_native                                    = false
+      + map_public_ip_on_launch                        = false
+      + owner_id                                       = (known after apply)
+      + private_dns_hostname_type_on_launch            = (known after apply)
+      + tags_all                                       = (known after apply)
+      + vpc_id                                         = (known after apply)
     }
 
   # aws_vpc.vpc will be created
   + resource "aws_vpc" "vpc" {
-      + arn                              = (known after apply)
-      + assign_generated_ipv6_cidr_block = false
-      + cidr_block                       = "10.5.0.0/16"
-      + default_network_acl_id           = (known after apply)
-      + default_route_table_id           = (known after apply)
-      + default_security_group_id        = (known after apply)
-      + dhcp_options_id                  = (known after apply)
-      + enable_classiclink               = (known after apply)
-      + enable_classiclink_dns_support   = (known after apply)
-      + enable_dns_hostnames             = true
-      + enable_dns_support               = true
-      + id                               = (known after apply)
-      + instance_tenancy                 = "default"
-      + ipv6_association_id              = (known after apply)
-      + ipv6_cidr_block                  = (known after apply)
-      + main_route_table_id              = (known after apply)
-      + owner_id                         = (known after apply)
-      + tags                             = {
-          + "Name" = "aakulov-aws7"
+      + arn                                  = (known after apply)
+      + cidr_block                           = "10.5.0.0/16"
+      + default_network_acl_id               = (known after apply)
+      + default_route_table_id               = (known after apply)
+      + default_security_group_id            = (known after apply)
+      + dhcp_options_id                      = (known after apply)
+      + enable_classiclink                   = (known after apply)
+      + enable_classiclink_dns_support       = (known after apply)
+      + enable_dns_hostnames                 = true
+      + enable_dns_support                   = true
+      + id                                   = (known after apply)
+      + instance_tenancy                     = "default"
+      + ipv6_association_id                  = (known after apply)
+      + ipv6_cidr_block                      = (known after apply)
+      + ipv6_cidr_block_network_border_group = (known after apply)
+      + main_route_table_id                  = (known after apply)
+      + owner_id                             = (known after apply)
+      + tags                                 = {
+          + "Name" = "aakulov-aws9"
         }
-      + tags_all                         = {
-          + "Name" = "aakulov-aws7"
-        }
-    }
-
-  # tls_private_key.aws7 will be created
-  + resource "tls_private_key" "aws7" {
-      + algorithm                  = "RSA"
-      + ecdsa_curve                = "P224"
-      + id                         = (known after apply)
-      + private_key_pem            = (sensitive value)
-      + public_key_fingerprint_md5 = (known after apply)
-      + public_key_openssh         = (known after apply)
-      + public_key_pem             = (known after apply)
-      + rsa_bits                   = 2048
-    }
-
-  # tls_self_signed_cert.aws7 will be created
-  + resource "tls_self_signed_cert" "aws7" {
-      + allowed_uses          = [
-          + "key_encipherment",
-          + "digital_signature",
-          + "server_auth",
-        ]
-      + cert_pem              = (known after apply)
-      + dns_names             = [
-          + "tfe7.anton.hashicorp-success.com",
-        ]
-      + early_renewal_hours   = 744
-      + id                    = (known after apply)
-      + key_algorithm         = "RSA"
-      + private_key_pem       = (sensitive value)
-      + ready_for_renewal     = true
-      + validity_end_time     = (known after apply)
-      + validity_period_hours = 8928
-      + validity_start_time   = (known after apply)
-
-      + subject {
-          + common_name  = "tfe7.anton.hashicorp-success.com"
-          + organization = "aakulov sandbox"
+      + tags_all                             = {
+          + "Name" = "aakulov-aws9"
         }
     }
 
-Plan: 25 to add, 0 to change, 0 to destroy.
+  # cloudflare_record.aws9 will be created
+  + resource "cloudflare_record" "aws9" {
+      + allow_overwrite = false
+      + created_on      = (known after apply)
+      + hostname        = (known after apply)
+      + id              = (known after apply)
+      + metadata        = (known after apply)
+      + modified_on     = (known after apply)
+      + name            = "tfe9.akulov.cc"
+      + proxiable       = (known after apply)
+      + proxied         = false
+      + ttl             = 1
+      + type            = "CNAME"
+      + value           = (known after apply)
+      + zone_id         = (sensitive)
+    }
+
+  # cloudflare_record.aws9jump will be created
+  + resource "cloudflare_record" "aws9jump" {
+      + allow_overwrite = false
+      + created_on      = (known after apply)
+      + hostname        = (known after apply)
+      + id              = (known after apply)
+      + metadata        = (known after apply)
+      + modified_on     = (known after apply)
+      + name            = "tfe9jump.akulov.cc"
+      + proxiable       = (known after apply)
+      + proxied         = false
+      + ttl             = 1
+      + type            = "A"
+      + value           = (known after apply)
+      + zone_id         = (sensitive)
+    }
+
+Plan: 41 to add, 0 to change, 0 to destroy.
 
 Changes to Outputs:
-  + aws_url = "tfe7.anton.hashicorp-success.com"
+  + aws_jump        = "tfe9jump.akulov.cc"
+  + aws_url         = "tfe9.akulov.cc"
+  + ec2_instance_ip = (known after apply)
 
 Do you want to perform these actions?
   Terraform will perform the actions described above.
@@ -1047,99 +1735,147 @@ Do you want to perform these actions?
 
   Enter a value: yes
 
-tls_private_key.aws7: Creating...
-tls_private_key.aws7: Creation complete after 0s [id=42b8301d5b3a0adec852b2a3f49c7396df6d2007]
-tls_self_signed_cert.aws7: Creating...
-tls_self_signed_cert.aws7: Creation complete after 0s [id=287433814863524592732522140055983667632]
-aws_eip.aws7: Creating...
+aws_acm_certificate.aws9: Creating...
 aws_vpc.vpc: Creating...
-aws_iam_role.aakulov-aws7-iam-role-ec2-s3: Creating...
-aws_s3_bucket.aws7: Creating...
-aws_eip.aws7: Creation complete after 1s [id=eipalloc-091801597e997f58a]
-aws_iam_role.aakulov-aws7-iam-role-ec2-s3: Creation complete after 3s [id=aakulov-aws7-iam-role-ec2-s3]
-aws_iam_instance_profile.aakulov-aws7-ec2-s3: Creating...
-aws_s3_bucket.aws7: Creation complete after 3s [id=aakulov-aws7-tfe-data]
-aws_s3_bucket_public_access_block.aws7: Creating...
-aws_iam_role_policy.aakulov-aws7-ec2-s3: Creating...
-aws_s3_bucket_public_access_block.aws7: Creation complete after 1s [id=aakulov-aws7-tfe-data]
-aws_iam_role_policy.aakulov-aws7-ec2-s3: Creation complete after 2s [id=aakulov-aws7-iam-role-ec2-s3:aakulov-aws7-ec2-s3]
-aws_iam_instance_profile.aakulov-aws7-ec2-s3: Creation complete after 3s [id=aakulov-aws7-ec2-s3]
+aws_iam_role.aakulov-aws9-iam-role-ec2-s3: Creating...
+aws_acm_certificate.aws9: Creation complete after 1s [id=arn:aws:acm:eu-central-1:267023797923:certificate/9d008b24-afdd-41cf-8f41-80f8d3ec2270]
+aws_iam_role.aakulov-aws9-iam-role-ec2-s3: Creation complete after 1s [id=aakulov-aws9-iam-role-ec2-s3]
+aws_iam_role_policy.aakulov-aws9-ec2-s3: Creating...
+aws_iam_instance_profile.aakulov-aws9-ec2-s3: Creating...
+aws_iam_role_policy.aakulov-aws9-ec2-s3: Creation complete after 1s [id=aakulov-aws9-iam-role-ec2-s3:aakulov-aws9-ec2-s3]
+aws_iam_instance_profile.aakulov-aws9-ec2-s3: Creation complete after 1s [id=aakulov-aws9-ec2-s3]
 aws_vpc.vpc: Still creating... [10s elapsed]
-aws_vpc.vpc: Creation complete after 13s [id=vpc-03b654ec47950329c]
+aws_vpc.vpc: Creation complete after 12s [id=vpc-015ea87bb48f3d6e5]
 aws_internet_gateway.igw: Creating...
-aws_subnet.subnet_private2: Creating...
-aws_subnet.subnet_private1: Creating...
-aws_subnet.subnet_public2: Creating...
 aws_subnet.subnet_public1: Creating...
-aws_security_group.aws7-internal-sg: Creating...
-aws_security_group.aakulov-aws7: Creating...
-aws_internet_gateway.igw: Creation complete after 0s [id=igw-0b107b5f9ceb07c6e]
-aws_subnet.subnet_private1: Creation complete after 0s [id=subnet-0b73fffe142c8a5be]
-aws_route_table.aws7-public: Creating...
-aws_subnet.subnet_public2: Creation complete after 0s [id=subnet-00fe12afd19b59ffb]
-aws_subnet.subnet_public1: Creation complete after 0s [id=subnet-0be90f409f295238e]
-aws_subnet.subnet_private2: Creation complete after 0s [id=subnet-0141776b624bdc499]
+aws_subnet.subnet_public2: Creating...
+aws_subnet.subnet_private1: Creating...
+aws_subnet.subnet_private2: Creating...
+aws_lb_target_group.aws9-8800: Creating...
+aws_lb_target_group.aws9-443: Creating...
+aws_security_group.aws9-lb-sg: Creating...
+aws_security_group.aws9-public-sg: Creating...
+aws_lb_target_group.aws9-8800: Creation complete after 0s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:targetgroup/aakulov-aws9-8800/3b6b4bd117b5b40b]
+aws_subnet.subnet_private2: Creation complete after 0s [id=subnet-076d136d7f576de14]
+aws_subnet.subnet_private1: Creation complete after 0s [id=subnet-0fa2844340ae575f7]
+aws_subnet.subnet_public2: Creation complete after 0s [id=subnet-00bff5b63829eed95]
+aws_subnet.subnet_public1: Creation complete after 0s [id=subnet-033c30ebf241b2814]
+aws_db_subnet_group.aws9: Creating...
+aws_internet_gateway.igw: Creation complete after 0s [id=igw-0bae6d5b7ec35b9e6]
+aws_eip.aws9nat: Creating...
+aws_route_table.aws9-public: Creating...
+aws_lb_target_group.aws9-443: Creation complete after 1s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:targetgroup/aakulov-aws9-443/f146c34b60af78ee]
+aws_eip.aws9nat: Creation complete after 1s [id=eipalloc-0ddce7177b0a3c847]
 aws_nat_gateway.nat: Creating...
-aws_db_subnet_group.aws7: Creating...
-aws_route_table.aws7-public: Creation complete after 1s [id=rtb-00351ff5f07a8255b]
-aws_db_subnet_group.aws7: Creation complete after 1s [id=aakulov-aws7]
-aws_route_table_association.aws7-public: Creating...
-aws_security_group.aakulov-aws7: Creation complete after 1s [id=sg-0c61896d869708944]
-aws_security_group.aws7-internal-sg: Creation complete after 1s [id=sg-00b6258815ba6c017]
-aws_db_instance.aws7: Creating...
-aws_route_table_association.aws7-public: Creation complete after 1s [id=rtbassoc-0ad31c6f90b389ea6]
+aws_route_table.aws9-public: Creation complete after 1s [id=rtb-0f629260426cec71a]
+aws_route_table_association.aws9-public: Creating...
+aws_security_group.aws9-lb-sg: Creation complete after 1s [id=sg-0e169cde357205f1f]
+aws_lb.aws9: Creating...
+aws_route_table_association.aws9-public: Creation complete after 1s [id=rtbassoc-09d851b220b1a368a]
+aws_db_subnet_group.aws9: Creation complete after 2s [id=aakulov-aws9]
+aws_security_group.aws9-public-sg: Creation complete after 2s [id=sg-02f693687e45055d0]
+aws_instance.aws9jump: Creating...
+aws_security_group.aws9-internal-sg: Creating...
+aws_security_group.aws9-internal-sg: Creation complete after 2s [id=sg-093c7553e29399b46]
+aws_security_group_rule.aws9-lb-sg-to-aws9-internal-sg-allow-8800: Creating...
+aws_security_group_rule.aws9-lb-sg-to-aws9-internal-sg-allow-443: Creating...
+aws_db_instance.aws9: Creating...
+aws_instance.aws9_minio: Creating...
+aws_security_group_rule.aws9-lb-sg-to-aws9-internal-sg-allow-8800: Creation complete after 0s [id=sgrule-1385780569]
+aws_security_group_rule.aws9-lb-sg-to-aws9-internal-sg-allow-443: Creation complete after 1s [id=sgrule-2471841748]
 aws_nat_gateway.nat: Still creating... [10s elapsed]
-aws_db_instance.aws7: Still creating... [10s elapsed]
+aws_lb.aws9: Still creating... [10s elapsed]
+aws_instance.aws9jump: Still creating... [10s elapsed]
+aws_instance.aws9_minio: Still creating... [10s elapsed]
+aws_db_instance.aws9: Still creating... [10s elapsed]
+aws_instance.aws9jump: Creation complete after 12s [id=i-0d0ca057a108b68ce]
+aws_eip.aws9jump: Creating...
+aws_eip.aws9jump: Creation complete after 1s [id=eipalloc-096309d4d9167f3b7]
+aws_eip_association.aws9jump: Creating...
+cloudflare_record.aws9jump: Creating...
+aws_eip_association.aws9jump: Creation complete after 1s [id=eipassoc-0da3e83ef497b7117]
+aws_instance.aws9_minio: Creation complete after 13s [id=i-04c4ec52c65aa4fca]
+cloudflare_record.aws9jump: Creation complete after 2s [id=4517e5bcd28cad69bc85f99b8dc5ec20]
 aws_nat_gateway.nat: Still creating... [20s elapsed]
-aws_db_instance.aws7: Still creating... [20s elapsed]
+aws_lb.aws9: Still creating... [20s elapsed]
+aws_db_instance.aws9: Still creating... [20s elapsed]
 aws_nat_gateway.nat: Still creating... [30s elapsed]
-aws_db_instance.aws7: Still creating... [30s elapsed]
+aws_lb.aws9: Still creating... [30s elapsed]
+aws_db_instance.aws9: Still creating... [30s elapsed]
 aws_nat_gateway.nat: Still creating... [40s elapsed]
-aws_db_instance.aws7: Still creating... [40s elapsed]
+aws_lb.aws9: Still creating... [40s elapsed]
+aws_db_instance.aws9: Still creating... [40s elapsed]
 aws_nat_gateway.nat: Still creating... [50s elapsed]
-aws_db_instance.aws7: Still creating... [50s elapsed]
+aws_lb.aws9: Still creating... [50s elapsed]
+aws_db_instance.aws9: Still creating... [50s elapsed]
 aws_nat_gateway.nat: Still creating... [1m0s elapsed]
-aws_db_instance.aws7: Still creating... [1m0s elapsed]
+aws_lb.aws9: Still creating... [1m0s elapsed]
+aws_db_instance.aws9: Still creating... [1m0s elapsed]
 aws_nat_gateway.nat: Still creating... [1m10s elapsed]
-aws_db_instance.aws7: Still creating... [1m10s elapsed]
+aws_lb.aws9: Still creating... [1m10s elapsed]
+aws_db_instance.aws9: Still creating... [1m10s elapsed]
 aws_nat_gateway.nat: Still creating... [1m20s elapsed]
-aws_db_instance.aws7: Still creating... [1m20s elapsed]
+aws_lb.aws9: Still creating... [1m20s elapsed]
+aws_db_instance.aws9: Still creating... [1m20s elapsed]
 aws_nat_gateway.nat: Still creating... [1m30s elapsed]
-aws_db_instance.aws7: Still creating... [1m31s elapsed]
+aws_lb.aws9: Still creating... [1m30s elapsed]
+aws_db_instance.aws9: Still creating... [1m30s elapsed]
 aws_nat_gateway.nat: Still creating... [1m40s elapsed]
-aws_db_instance.aws7: Still creating... [1m41s elapsed]
-aws_nat_gateway.nat: Creation complete after 1m46s [id=nat-027b23171181bc45d]
-aws_route_table.aws7-private: Creating...
-aws_route_table.aws7-private: Creation complete after 1s [id=rtb-0b05be12d4db1db82]
-aws_route_table_association.aws7-private: Creating...
-aws_route_table_association.aws7-private: Creation complete after 1s [id=rtbassoc-0356696f2c1e26d4e]
-aws_db_instance.aws7: Still creating... [1m51s elapsed]
-aws_db_instance.aws7: Still creating... [2m1s elapsed]
-aws_db_instance.aws7: Still creating... [2m11s elapsed]
-aws_db_instance.aws7: Still creating... [2m21s elapsed]
-aws_db_instance.aws7: Still creating... [2m31s elapsed]
-aws_db_instance.aws7: Still creating... [2m41s elapsed]
-aws_db_instance.aws7: Still creating... [2m51s elapsed]
-aws_db_instance.aws7: Still creating... [3m1s elapsed]
-aws_db_instance.aws7: Still creating... [3m11s elapsed]
-aws_db_instance.aws7: Creation complete after 3m16s [id=terraform-20211122095341487600000001]
-data.template_file.install_tfe_sh: Reading...
-data.template_file.install_tfe_sh: Read complete after 0s [id=8159b7ef82ca90589a9711d2a5d47c5866c42db319d162267d2f19929be07b4e]
-data.template_cloudinit_config.aws7_cloudinit: Reading...
-data.template_cloudinit_config.aws7_cloudinit: Read complete after 0s [id=2343644157]
-aws_instance.aws7: Creating...
-aws_instance.aws7: Still creating... [10s elapsed]
-aws_instance.aws7: Creation complete after 13s [id=i-092f86289e90c9a76]
-aws_route53_record.aws7: Creating...
-aws_route53_record.aws7: Still creating... [10s elapsed]
-aws_route53_record.aws7: Still creating... [20s elapsed]
-aws_route53_record.aws7: Still creating... [30s elapsed]
-aws_route53_record.aws7: Creation complete after 35s [id=Z077919913NMEBCGB4WS0_tfe7.anton.hashicorp-success.com_A]
+aws_lb.aws9: Still creating... [1m40s elapsed]
+aws_db_instance.aws9: Still creating... [1m40s elapsed]
+aws_nat_gateway.nat: Creation complete after 1m44s [id=nat-0d56ec4e87073db2b]
+aws_route_table.aws9-private: Creating...
+aws_route_table.aws9-private: Creation complete after 1s [id=rtb-0b07c7bc673556fdb]
+aws_route_table_association.aws9-private: Creating...
+aws_route_table_association.aws9-private: Creation complete after 0s [id=rtbassoc-04a80e6797aec328c]
+aws_lb.aws9: Still creating... [1m50s elapsed]
+aws_db_instance.aws9: Still creating... [1m50s elapsed]
+aws_lb.aws9: Still creating... [2m0s elapsed]
+aws_db_instance.aws9: Still creating... [2m0s elapsed]
+aws_lb.aws9: Still creating... [2m10s elapsed]
+aws_db_instance.aws9: Still creating... [2m10s elapsed]
+aws_lb.aws9: Still creating... [2m20s elapsed]
+aws_db_instance.aws9: Still creating... [2m20s elapsed]
+aws_lb.aws9: Still creating... [2m30s elapsed]
+aws_db_instance.aws9: Still creating... [2m30s elapsed]
+aws_lb.aws9: Still creating... [2m40s elapsed]
+aws_db_instance.aws9: Still creating... [2m40s elapsed]
+aws_lb.aws9: Still creating... [2m50s elapsed]
+aws_db_instance.aws9: Still creating... [2m50s elapsed]
+aws_db_instance.aws9: Creation complete after 2m54s [id=terraform-20220425135407071700000001]
+data.template_file.install_tfe_minio_sh: Reading...
+data.template_file.install_tfe_minio_sh: Read complete after 0s [id=e770a27bc741c88c530a49e6e102d681718ba2dfe52a5662ad85dc01b76a6d86]
+data.template_cloudinit_config.aws9_cloudinit: Reading...
+data.template_cloudinit_config.aws9_cloudinit: Read complete after 0s [id=2925402976]
+aws_instance.aws9: Creating...
+aws_lb.aws9: Still creating... [3m0s elapsed]
+aws_lb.aws9: Creation complete after 3m1s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:loadbalancer/app/aakulov-aws9/760143c5dbe787c5]
+cloudflare_record.aws9: Creating...
+aws_lb_listener.aws9-443: Creating...
+aws_lb_listener.aws9-8800: Creating...
+aws_lb_listener.aws9-443: Creation complete after 0s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:listener/app/aakulov-aws9/760143c5dbe787c5/92e7b712a550e713]
+aws_lb_listener_rule.aws9-443: Creating...
+aws_lb_listener.aws9-8800: Creation complete after 1s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:listener/app/aakulov-aws9/760143c5dbe787c5/49424e067e9d6e38]
+aws_lb_listener_rule.aws9-8800: Creating...
+aws_lb_listener_rule.aws9-443: Creation complete after 1s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:listener-rule/app/aakulov-aws9/760143c5dbe787c5/92e7b712a550e713/c0d69eabb9a8f7fe]
+aws_lb_listener_rule.aws9-8800: Creation complete after 0s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:listener-rule/app/aakulov-aws9/760143c5dbe787c5/49424e067e9d6e38/0f4e141bfe336ecc]
+cloudflare_record.aws9: Creation complete after 2s [id=0f077dda986718d766d8f107b83a18dd]
+aws_instance.aws9: Still creating... [10s elapsed]
+aws_instance.aws9: Creation complete after 12s [id=i-09e002a77fa21867a]
+aws_lb_target_group_attachment.aws9-443: Creating...
+aws_lb_target_group_attachment.aws9-8800: Creating...
+aws_eip.aws9: Creating...
+aws_lb_target_group_attachment.aws9-8800: Creation complete after 0s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:targetgroup/aakulov-aws9-8800/3b6b4bd117b5b40b-20220425135713175200000002]
+aws_lb_target_group_attachment.aws9-443: Creation complete after 0s [id=arn:aws:elasticloadbalancing:eu-central-1:267023797923:targetgroup/aakulov-aws9-443/f146c34b60af78ee-20220425135713258800000003]
+aws_eip.aws9: Creation complete after 1s [id=eipalloc-0c7ff98d8767b6692]
+aws_eip_association.aws9: Creating...
+aws_eip_association.aws9: Creation complete after 1s [id=eipassoc-04079c969699fad4a]
 
-Apply complete! Resources: 25 added, 0 changed, 0 destroyed.
+Apply complete! Resources: 41 added, 0 changed, 0 destroyed.
 
 Outputs:
 
-aws_url = "tfe7.anton.hashicorp-success.com"
-
+aws_jump = "tfe9jump.akulov.cc"
+aws_url = "tfe9.akulov.cc"
+ec2_instance_ip = "10.5.1.229"
 ```

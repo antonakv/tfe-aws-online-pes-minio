@@ -54,10 +54,12 @@ variable "release_sequence" {
 variable "minio_access_key" {
   type        = string
   description = "Minio access key"
+  sensitive   = true
 }
 variable "minio_secret_key" {
   type        = string
   description = "Minio secret key"
+  sensitive   = true
 }
 variable "ami_minio" {
   type        = string
@@ -87,6 +89,7 @@ variable "domain_name" {
 variable "cloudflare_zone_id" {
   type        = string
   description = "Cloudflare zone id"
+  sensitive   = true
 }
 variable "ssl_cert_path" {
   type        = string
@@ -95,4 +98,12 @@ variable "ssl_cert_path" {
 variable "ssl_key_path" {
   type        = string
   description = "SSL key file path"
+}
+variable "ssl_chain_path" {
+  type        = string
+  description = "SSL chain file path"
+}
+variable "ssl_fullchain_cert_path" {
+  type        = string
+  description = "SSL fullchain cert file path"
 }

@@ -8,12 +8,7 @@ provider "aws" {
 }
 
 provider "cloudflare" {
-  # email   = var.cloudflare_email
   api_token = var.cloudflare_api_token
-}
-
-resource "tls_private_key" "aws9" {
-  algorithm = "RSA"
 }
 
 resource "aws_vpc" "vpc" {
@@ -350,6 +345,14 @@ data "local_sensitive_file" "sslkey" {
   filename = var.ssl_key_path
 }
 
+data "local_sensitive_file" "sslchain" {
+  filename = var.ssl_chain_path
+}
+
+data "local_sensitive_file" "sslfullchaincert" {
+  filename = var.ssl_fullchain_cert_path
+}
+
 data "template_file" "install_tfe_minio_sh" {
   template = file("templates/install_tfe_minio.sh.tpl")
   vars = {
@@ -361,7 +364,7 @@ data "template_file" "install_tfe_minio_sh" {
     pguser           = aws_db_instance.aws9.username
     s3bucket         = var.s3_bucket
     s3region         = var.region
-    cert_pem         = data.local_sensitive_file.sslcert.content
+    cert_pem         = data.local_sensitive_file.sslfullchaincert.content
     key_pem          = data.local_sensitive_file.sslkey.content
     minio_secret_key = var.minio_secret_key
     minio_access_key = var.minio_access_key
@@ -432,6 +435,7 @@ resource "aws_instance" "aws9jump" {
 resource "aws_acm_certificate" "aws9" {
   private_key       = data.local_sensitive_file.sslkey.content
   certificate_body  = data.local_sensitive_file.sslcert.content
+  certificate_chain = data.local_sensitive_file.sslchain.content
   lifecycle {
     create_before_destroy = true
   }

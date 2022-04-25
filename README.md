@@ -14,8 +14,11 @@ This manual is dedicated to install Terraform Enterprise online install on AWS w
 - Amazon AWS account credentials saved in .aws/credentials file
 [Configuration and credential file settings](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 
-- Configured AWS Route53 DNS zone for domain `myname.hashicorp-success.com`
-[Amazon Route53: Working with public hosted zones](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/AboutHZWorkingWith.html)
+- Configured Cloudflare DNS zone for domain `myname.my-domain-here.com`
+[Cloudflare DNS](https://developers.cloudflare.com/dns/)
+
+- SSL certificate and SSL key files for the corresponding domain name
+[Certbot manual](https://certbot.eff.org/instructions)
 
 - Created Amazon EC2 key pair for Linux instance
 [Create a key pair using Amazon EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair)

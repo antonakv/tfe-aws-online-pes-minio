@@ -16,27 +16,6 @@ resource "tls_private_key" "aws9" {
   algorithm = "RSA"
 }
 
-resource "tls_self_signed_cert" "aws9" {
-  key_algorithm         = tls_private_key.aws9.algorithm
-  private_key_pem       = tls_private_key.aws9.private_key_pem
-  validity_period_hours = 8928
-  early_renewal_hours   = 744
-
-  allowed_uses = [
-    "key_encipherment",
-    "digital_signature",
-    "server_auth",
-  ]
-
-  dns_names = [var.tfe_hostname]
-
-  subject {
-    common_name  = var.tfe_hostname
-    organization = "aakulov sandbox"
-  }
-
-}
-
 resource "aws_vpc" "vpc" {
   cidr_block           = var.cidr_vpc
   enable_dns_support   = true
@@ -282,26 +261,6 @@ resource "aws_security_group" "aws9-public-sg" {
   }
 }
 
-
-resource "aws_route53_record" "aws9" {
-  zone_id         = "Z077919913NMEBCGB4WS0"
-  name            = var.tfe_hostname
-  type            = "CNAME"
-  ttl             = "300"
-  records         = [aws_lb.aws9.dns_name]
-  allow_overwrite = true
-}
-
-resource "aws_route53_record" "aws9jump" {
-  zone_id         = "Z077919913NMEBCGB4WS0"
-  name            = var.tfe_hostname_jump
-  type            = "A"
-  ttl             = "300"
-  records         = [aws_eip.aws9jump.public_ip]
-  allow_overwrite = true
-  depends_on      = [aws_instance.aws9jump, aws_eip.aws9jump]
-}
-
 resource "cloudflare_record" "aws9" {
   zone_id = var.cloudflare_zone_id
   name    = "tfe9.akulov.cc"
@@ -312,28 +271,13 @@ resource "cloudflare_record" "aws9" {
 }
 
 resource "cloudflare_record" "aws9jump" {
-  zone_id = var.cloudflare_zone_id
-  name    = "tfe9jump.akulov.cc"
-  value   = aws_eip.aws9jump.public_ip
-  type    = "A"
-  ttl     = 1
-  proxied = false
-}
-
-resource "aws_route53_record" "cert_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.aws9.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-  zone_id         = "Z077919913NMEBCGB4WS0"
-  ttl             = 60
-  type            = each.value.type
-  name            = each.value.name
-  records         = [each.value.record]
-  allow_overwrite = true
+  zone_id    = var.cloudflare_zone_id
+  name       = "tfe9jump.akulov.cc"
+  value      = aws_eip.aws9jump.public_ip
+  type       = "A"
+  ttl        = 1
+  proxied    = false
+  depends_on = [aws_instance.aws9jump, aws_eip.aws9jump]
 }
 
 resource "aws_db_subnet_group" "aws9" {
@@ -398,6 +342,14 @@ resource "aws_instance" "aws9_minio" {
   }
 }
 
+data "local_sensitive_file" "sslcert" {
+  filename = var.ssl_cert_path
+}
+
+data "local_sensitive_file" "sslkey" {
+  filename = var.ssl_key_path
+}
+
 data "template_file" "install_tfe_minio_sh" {
   template = file("templates/install_tfe_minio.sh.tpl")
   vars = {
@@ -409,8 +361,8 @@ data "template_file" "install_tfe_minio_sh" {
     pguser           = aws_db_instance.aws9.username
     s3bucket         = var.s3_bucket
     s3region         = var.region
-    cert_pem         = tls_self_signed_cert.aws9.cert_pem
-    key_pem          = tls_private_key.aws9.private_key_pem
+    cert_pem         = data.local_sensitive_file.sslcert.content
+    key_pem          = data.local_sensitive_file.sslkey.content
     minio_secret_key = var.minio_secret_key
     minio_access_key = var.minio_access_key
     s3endpoint       = local.s3endpoint
@@ -478,16 +430,8 @@ resource "aws_instance" "aws9jump" {
 }
 
 resource "aws_acm_certificate" "aws9" {
-  domain_name       = var.tfe_hostname
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "aws_acm_certificate_validation" "aws9" {
-  certificate_arn = aws_acm_certificate.aws9.arn
+  private_key       = data.local_sensitive_file.sslkey.content
+  certificate_body  = data.local_sensitive_file.sslcert.content
   lifecycle {
     create_before_destroy = true
   }
@@ -722,11 +666,11 @@ resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
 
 
 output "aws_jump" {
-  value = aws_route53_record.aws9jump.name
+  value = cloudflare_record.aws9jump.name
 }
 
 output "aws_url" {
-  value = aws_route53_record.aws9.name
+  value = cloudflare_record.aws9.name
 }
 
 output "ec2_instance_ip" {

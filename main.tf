@@ -7,6 +7,11 @@ provider "aws" {
   region = var.region
 }
 
+provider "cloudflare" {
+  # email   = var.cloudflare_email
+  api_token = var.cloudflare_api_token
+}
+
 resource "tls_private_key" "aws9" {
   algorithm = "RSA"
 }
@@ -73,7 +78,7 @@ resource "aws_internet_gateway" "igw" {
 }
 
 resource "aws_eip" "aws9" {
-  vpc = true
+  vpc      = true
   instance = aws_instance.aws9.id
   depends_on = [
     aws_internet_gateway.igw
@@ -81,7 +86,7 @@ resource "aws_eip" "aws9" {
 }
 
 resource "aws_eip" "aws9jump" {
-  vpc = true
+  vpc      = true
   instance = aws_instance.aws9jump.id
   depends_on = [
     aws_internet_gateway.igw
@@ -295,6 +300,24 @@ resource "aws_route53_record" "aws9jump" {
   records         = [aws_eip.aws9jump.public_ip]
   allow_overwrite = true
   depends_on      = [aws_instance.aws9jump, aws_eip.aws9jump]
+}
+
+resource "cloudflare_record" "aws9" {
+  zone_id = var.cloudflare_zone_id
+  name    = "tfe9.akulov.cc"
+  value   = aws_lb.aws9.dns_name
+  type    = "CNAME"
+  ttl     = 1
+  proxied = false
+}
+
+resource "cloudflare_record" "aws9jump" {
+  zone_id = var.cloudflare_zone_id
+  name    = "tfe9jump.akulov.cc"
+  value   = aws_eip.aws9jump.public_ip
+  type    = "A"
+  ttl     = 1
+  proxied = false
 }
 
 resource "aws_route53_record" "cert_validation" {
@@ -565,11 +588,11 @@ resource "aws_lb_listener" "aws9-8800" {
 
 resource "aws_lb_listener_rule" "aws9-8800" {
   listener_arn = aws_lb_listener.aws9-8800.arn
-   condition {
+  condition {
     host_header {
       values = [var.tfe_hostname]
     }
-  } 
+  }
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.aws9-8800.arn
@@ -578,11 +601,11 @@ resource "aws_lb_listener_rule" "aws9-8800" {
 
 resource "aws_lb_listener_rule" "aws9-443" {
   listener_arn = aws_lb_listener.aws9-443.arn
-   condition {
+  condition {
     host_header {
       values = [var.tfe_hostname]
     }
-  } 
+  }
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.aws9-443.arn

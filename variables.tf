@@ -71,3 +71,13 @@ variable "instance_type_jump" {
 variable "s3_bucket" {
   description = "Name of the Terraform Enterprise S3 bucket"
 }
+variable "cloudflare_api_token" {
+  description = "API token for cloudflare"
+  sensitive   = true
+}
+variable "domain_name" {
+  description = "Cloudflare domain name"
+}
+variable "cloudflare_zone_id" {
+  description = "Cloudflare zone id"
+}

@@ -60,24 +60,39 @@ variable "minio_secret_key" {
   description = "Minio secret key"
 }
 variable "ami_minio" {
+  type        = string
   description = "Amazon EC2 Minio ami created with Packer"
 }
 variable "instance_type_minio" {
+  type        = string
   description = "Amazon EC2 Minio instance type"
 }
 variable "instance_type_jump" {
+  type        = string
   description = "Amazon EC2 Jump host instance type"
 }
 variable "s3_bucket" {
+  type        = string
   description = "Name of the Terraform Enterprise S3 bucket"
 }
 variable "cloudflare_api_token" {
+  type        = string
   description = "API token for cloudflare"
   sensitive   = true
 }
 variable "domain_name" {
+  type        = string
   description = "Cloudflare domain name"
 }
 variable "cloudflare_zone_id" {
+  type        = string
   description = "Cloudflare zone id"
+}
+variable "ssl_cert_path" {
+  type        = string
+  description = "SSL certificate file path"
+}
+variable "ssl_key_path" {
+  type        = string
+  description = "SSL key file path"
 }

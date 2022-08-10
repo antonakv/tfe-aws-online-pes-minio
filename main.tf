@@ -256,7 +256,7 @@ resource "aws_security_group" "aws9-public-sg" {
   }
 }
 
-resource "cloudflare_record" "aws9" {
+/* resource "cloudflare_record" "aws9" {
   zone_id = var.cloudflare_zone_id
   name    = "tfe9.akulov.cc"
   value   = aws_lb.aws9.dns_name
@@ -272,6 +272,28 @@ resource "cloudflare_record" "aws9jump" {
   type       = "A"
   ttl        = 1
   proxied    = false
+  depends_on = [aws_instance.aws9jump, aws_eip.aws9jump]
+} */
+
+data "aws_route53_zone" "aws9" {
+  name         = var.domain_name
+  private_zone = false
+}
+
+resource "aws_route53_record" "aws9" {
+  zone_id = data.aws_route53_zone.aws9.zone_id
+  name    = "tfe9.akulov.cc"
+  type    = "A"
+  ttl     = 1
+  records = [aws_eip.aws9jump.public_ip]
+}
+
+resource "aws_route53_record" "aws9jump" {
+  zone_id    = data.aws_route53_zone.aws9.zone_id
+  name       = "tfe9jump.akulov.cc"
+  type       = "A"
+  ttl        = 1
+  records    = [aws_eip.aws9jump.public_ip]
   depends_on = [aws_instance.aws9jump, aws_eip.aws9jump]
 }
 
@@ -670,11 +692,11 @@ resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
 
 
 output "aws_jump" {
-  value = cloudflare_record.aws9jump.name
+  value = aws_route53_record.aws9jump.name
 }
 
 output "aws_url" {
-  value = cloudflare_record.aws9.name
+  value = aws_route53_record.aws9.name
 }
 
 output "ec2_instance_ip" {

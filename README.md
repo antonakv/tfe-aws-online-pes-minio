@@ -55,7 +55,7 @@ cd tfe-aws-online-pes
 key_name                = "aakulov"
 ami                     = "ami-086128e34136c3375"
 instance_type           = "t3.2xlarge"
-db_instance_type        = "db.t3.medium"
+db_instance_type        = "db.t4g.large"
 region                  = "eu-central-1"
 cidr_vpc                = "10.5.0.0/16"
 cidr_subnet1            = "10.5.1.0/24"

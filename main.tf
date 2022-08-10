@@ -285,7 +285,7 @@ resource "aws_route53_record" "aws9" {
   name    = "tfe9.akulov.cc"
   type    = "A"
   ttl     = 1
-  records = [aws_eip.aws9jump.public_ip]
+  records = [aws_eip.aws9.public_ip]
 }
 
 resource "aws_route53_record" "aws9jump" {

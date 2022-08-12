@@ -1,14 +1,20 @@
 locals {
-  s3endpoint      = format("http://%s:9000", aws_instance.aws9_minio.private_ip)
-  s3endpointlocal = "http://127.0.0.1:9000"
+  s3endpoint           = format("http://%s:9000", aws_instance.aws9_minio.private_ip)
+  s3endpointlocal      = "http://127.0.0.1:9000"
+  friendly_name_prefix = random_string.friendly_name.id
+  tfe_hostname         = "${local.friendly_name_prefix}${var.tfe_hostname}"
+  tfe_jump_hostname    = "${local.friendly_name_prefix}${var.tfe_hostname_jump}"
+}
+
+resource "random_string" "friendly_name" {
+  length  = 4
+  upper   = false
+  numeric = false
+  special = false
 }
 
 provider "aws" {
   region = var.region
-}
-
-provider "cloudflare" {
-  api_token = var.cloudflare_api_token
 }
 
 resource "aws_vpc" "vpc" {
@@ -16,7 +22,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9"
   }
 }
 
@@ -47,7 +53,7 @@ resource "aws_subnet" "subnet_public2" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9"
   }
 }
 
@@ -79,7 +85,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.subnet_public1.id
   depends_on    = [aws_internet_gateway.igw]
   tags = {
-    Name = "aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9"
   }
 }
 
@@ -93,7 +99,7 @@ resource "aws_route_table" "aws9-private" {
   }
 
   tags = {
-    Name = "aakulov-aws9-private"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9-private"
   }
 }
 
@@ -107,7 +113,7 @@ resource "aws_route_table" "aws9-public" {
   }
 
   tags = {
-    Name = "aakulov-aws9-public"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9-public"
   }
 }
 
@@ -123,9 +129,9 @@ resource "aws_route_table_association" "aws9-public" {
 
 resource "aws_security_group" "aws9-internal-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "aakulov-aws9-internal-sg"
+  name   = "${local.friendly_name_prefix}-aakulov-aws9-internal-sg"
   tags = {
-    Name = "aakulov-aws9-internal-sg"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9-internal-sg"
   }
 
   ingress {
@@ -215,9 +221,9 @@ resource "aws_security_group" "aws9-internal-sg" {
 
 resource "aws_security_group" "aws9-public-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "aakulov-aws9-public-sg"
+  name   = "${local.friendly_name_prefix}-aakulov-aws9-public-sg"
   tags = {
-    Name = "aakulov-aws9-public-sg"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9-public-sg"
   }
 
   ingress {
@@ -256,25 +262,6 @@ resource "aws_security_group" "aws9-public-sg" {
   }
 }
 
-/* resource "cloudflare_record" "aws9" {
-  zone_id = var.cloudflare_zone_id
-  name    = "tfe9.akulov.cc"
-  value   = aws_lb.aws9.dns_name
-  type    = "CNAME"
-  ttl     = 1
-  proxied = false
-}
-
-resource "cloudflare_record" "aws9jump" {
-  zone_id    = var.cloudflare_zone_id
-  name       = "tfe9jump.akulov.cc"
-  value      = aws_eip.aws9jump.public_ip
-  type       = "A"
-  ttl        = 1
-  proxied    = false
-  depends_on = [aws_instance.aws9jump, aws_eip.aws9jump]
-} */
-
 data "aws_route53_zone" "aws9" {
   name         = var.domain_name
   private_zone = false
@@ -282,15 +269,15 @@ data "aws_route53_zone" "aws9" {
 
 resource "aws_route53_record" "aws9" {
   zone_id = data.aws_route53_zone.aws9.zone_id
-  name    = "tfe9.akulov.cc"
-  type    = "A"
+  name    = local.tfe_hostname
+  type    = "CNAME"
   ttl     = 1
-  records = [aws_eip.aws9.public_ip]
+  records = [aws_lb.aws9.dns_name]
 }
 
 resource "aws_route53_record" "aws9jump" {
   zone_id    = data.aws_route53_zone.aws9.zone_id
-  name       = "tfe9jump.akulov.cc"
+  name       = local.tfe_jump_hostname
   type       = "A"
   ttl        = 1
   records    = [aws_eip.aws9jump.public_ip]
@@ -298,10 +285,10 @@ resource "aws_route53_record" "aws9jump" {
 }
 
 resource "aws_db_subnet_group" "aws9" {
-  name       = "aakulov-aws9"
+  name       = "${local.friendly_name_prefix}-aakulov-aws9"
   subnet_ids = [aws_subnet.subnet_public1.id, aws_subnet.subnet_public2.id, aws_subnet.subnet_private1.id, aws_subnet.subnet_private2.id]
   tags = {
-    Name = "aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9"
   }
 }
 
@@ -309,7 +296,7 @@ resource "aws_db_instance" "aws9" {
   allocated_storage      = 20
   max_allocated_storage  = 100
   engine                 = "postgres"
-  engine_version         = "12.7"
+  engine_version         = var.engine_version
   db_name                = "mydbtfe"
   username               = "postgres"
   password               = var.db_password
@@ -318,7 +305,7 @@ resource "aws_db_instance" "aws9" {
   vpc_security_group_ids = [aws_security_group.aws9-internal-sg.id]
   skip_final_snapshot    = true
   tags = {
-    Name = "aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9"
   }
 }
 
@@ -355,7 +342,7 @@ resource "aws_instance" "aws9_minio" {
     http_endpoint = "enabled"
   }
   tags = {
-    Name = "aakulov-aws9-minio"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9-minio"
   }
 }
 
@@ -379,7 +366,7 @@ data "template_file" "install_tfe_minio_sh" {
   template = file("templates/install_tfe_minio.sh.tpl")
   vars = {
     enc_password     = var.enc_password
-    hostname         = var.tfe_hostname
+    hostname         = local.tfe_hostname
     release_sequence = var.release_sequence
     pgsqlhostname    = aws_db_instance.aws9.address
     pgsqlpassword    = var.db_password
@@ -423,7 +410,7 @@ resource "aws_instance" "aws9" {
     http_put_response_hop_limit = 2
   }
   tags = {
-    Name = "aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9"
   }
 }
 
@@ -450,7 +437,7 @@ resource "aws_instance" "aws9jump" {
     http_put_response_hop_limit = 2
   }
   tags = {
-    Name = "aakulov-aws9jump"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9jump"
   }
 }
 
@@ -464,7 +451,7 @@ resource "aws_acm_certificate" "aws9" {
 }
 
 resource "aws_lb_target_group" "aws9-443" {
-  name        = "aakulov-aws9-443"
+  name        = "${local.friendly_name_prefix}-aakulov-aws9-443"
   port        = 443
   protocol    = "HTTPS"
   vpc_id      = aws_vpc.vpc.id
@@ -490,7 +477,7 @@ resource "aws_lb_target_group" "aws9-443" {
 }
 
 resource "aws_lb_target_group" "aws9-8800" {
-  name        = "aakulov-aws9-8800"
+  name        = "${local.friendly_name_prefix}-aakulov-aws9-8800"
   port        = 8800
   protocol    = "HTTPS"
   vpc_id      = aws_vpc.vpc.id
@@ -516,7 +503,7 @@ resource "aws_lb_target_group" "aws9-8800" {
 }
 
 resource "aws_lb" "aws9" {
-  name                             = "aakulov-aws9"
+  name                             = "${local.friendly_name_prefix}-aakulov-aws9"
   internal                         = false
   load_balancer_type               = "application"
   security_groups                  = [aws_security_group.aws9-lb-sg.id]
@@ -531,7 +518,7 @@ resource "aws_lb_listener" "aws9-443" {
   port              = "443"
   protocol          = "HTTPS"
   certificate_arn   = aws_acm_certificate.aws9.arn
-  ssl_policy        = "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
   depends_on = [
     aws_lb.aws9
   ]
@@ -546,7 +533,7 @@ resource "aws_lb_listener" "aws9-8800" {
   port              = "8800"
   protocol          = "HTTPS"
   certificate_arn   = aws_acm_certificate.aws9.arn
-  ssl_policy        = "ELBSecurityPolicy-FS-1-2-Res-2020-10"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
   depends_on = [
     aws_lb.aws9
   ]
@@ -560,7 +547,7 @@ resource "aws_lb_listener_rule" "aws9-8800" {
   listener_arn = aws_lb_listener.aws9-8800.arn
   condition {
     host_header {
-      values = [var.tfe_hostname]
+      values = [local.tfe_hostname]
     }
   }
   action {
@@ -573,7 +560,7 @@ resource "aws_lb_listener_rule" "aws9-443" {
   listener_arn = aws_lb_listener.aws9-443.arn
   condition {
     host_header {
-      values = [var.tfe_hostname]
+      values = [local.tfe_hostname]
     }
   }
   action {
@@ -596,9 +583,9 @@ resource "aws_lb_target_group_attachment" "aws9-8800" {
 
 resource "aws_security_group" "aws9-lb-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "aakulov-aws9-lb-sg"
+  name   = "${local.friendly_name_prefix}-aakulov-aws9-lb-sg"
   tags = {
-    Name = "aakulov-aws9-lb-sg"
+    Name = "${local.friendly_name_prefix}-aakulov-aws9-lb-sg"
   }
 
   ingress {
@@ -637,12 +624,12 @@ resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-8800" {
 }
 
 resource "aws_iam_instance_profile" "aakulov-aws9-ec2-s3" {
-  name = "aakulov-aws9-ec2-s3"
+  name = "${local.friendly_name_prefix}-aakulov-aws9-ec2-s3"
   role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.name
 }
 
 resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
-  name = "aakulov-aws9-ec2-s3"
+  name = "${local.friendly_name_prefix}-aakulov-aws9-ec2-s3"
   role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.id
   policy = jsonencode({
     "Version" : "2012-10-17",
@@ -651,6 +638,9 @@ resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
         "Sid" : "VisualEditor0",
         "Effect" : "Allow",
         "Action" : [
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup",
+          "logs:PutLogEvents",
           "s3:DeleteObject",
           "s3:GetObject",
           "s3:PutObject",
@@ -670,7 +660,7 @@ resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
 }
 
 resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
-  name = "aakulov-aws9-iam-role-ec2-s3"
+  name = "${local.friendly_name_prefix}-aakulov-aws9-iam-role-ec2-s3"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -686,7 +676,7 @@ resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
   })
 
   tags = {
-    tag-key = "aakulov-aws9-iam-role-ec2-s3"
+    tag-key = "${local.friendly_name_prefix}-aakulov-aws9-iam-role-ec2-s3"
   }
 }
 

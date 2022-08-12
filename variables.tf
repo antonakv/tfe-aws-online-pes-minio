@@ -77,19 +77,9 @@ variable "s3_bucket" {
   type        = string
   description = "Name of the Terraform Enterprise S3 bucket"
 }
-variable "cloudflare_api_token" {
-  type        = string
-  description = "API token for cloudflare"
-  sensitive   = true
-}
 variable "domain_name" {
   type        = string
   description = "Cloudflare domain name"
-}
-variable "cloudflare_zone_id" {
-  type        = string
-  description = "Cloudflare zone id"
-  sensitive   = true
 }
 variable "ssl_cert_path" {
   type        = string

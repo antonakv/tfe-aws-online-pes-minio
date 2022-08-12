@@ -107,3 +107,7 @@ variable "ssl_fullchain_cert_path" {
   type        = string
   description = "SSL fullchain cert file path"
 }
+variable "engine_version" {
+  type        = string
+  description = "AWS RDS engine version"
+}

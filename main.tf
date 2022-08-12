@@ -296,7 +296,7 @@ resource "aws_db_instance" "aws9" {
   allocated_storage      = 20
   max_allocated_storage  = 100
   engine                 = "postgres"
-  engine_version         = "10"
+  engine_version         = var.engine_version
   db_name                = "mydbtfe"
   username               = "postgres"
   password               = var.db_password

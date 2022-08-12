@@ -13,9 +13,13 @@ terraform {
       source  = "hashicorp/template"
       version = "~> 2.2.0"
     }
-    cloudflare = {
-      source  = "cloudflare/cloudflare"
-      version = "~> 3.12.0"
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.2.3"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.3.2"
     }
   }
 }

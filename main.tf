@@ -3,7 +3,7 @@ locals {
   s3endpointlocal      = "http://127.0.0.1:9000"
   friendly_name_prefix = random_string.friendly_name.id
   tfe_hostname         = "${local.friendly_name_prefix}${var.tfe_hostname}"
-  tfe_jump_hostname = "${local.friendly_name_prefix}${var.tfe_jump_hostname}"
+  tfe_jump_hostname    = "${local.friendly_name_prefix}${var.tfe_hostname_jump}"
 }
 
 resource "random_string" "friendly_name" {
@@ -277,7 +277,7 @@ resource "aws_route53_record" "aws9" {
 
 resource "aws_route53_record" "aws9jump" {
   zone_id    = data.aws_route53_zone.aws9.zone_id
-  name       = var.tfe_hostname_jump
+  name       = local.tfe_jump_hostname
   type       = "A"
   ttl        = 1
   records    = [aws_eip.aws9jump.public_ip]

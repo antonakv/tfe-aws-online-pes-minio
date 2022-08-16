@@ -105,3 +105,7 @@ variable "cloudflare_zone_id" {
   type        = string
   description = "Cloudflare DNS zone id"
 }
+variable "cloudflare_api_token" {
+  type        = string
+  description = "Cloudflare DNS API token"
+}

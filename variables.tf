@@ -101,3 +101,7 @@ variable "engine_version" {
   type        = string
   description = "AWS RDS engine version"
 }
+variable "cloudflare_zone_id" {
+  type        = string
+  description = "Cloudflare DNS zone id"
+}

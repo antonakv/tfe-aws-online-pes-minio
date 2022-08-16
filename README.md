@@ -79,6 +79,8 @@ ssl_key_path            = "PUT_your_Value_Here"
 ssl_chain_path          = "PUT_your_Value_Here"
 ssl_fullchain_cert_path = "PUT_your_Value_Here"
 engine_version          = "12.7"
+cloudflare_zone_id      = "PUT_your_Value_Here"
+cloudflare_api_token    = "PUT_your_Value_Here"
 ```
 
 - Change folder to `pre-req`

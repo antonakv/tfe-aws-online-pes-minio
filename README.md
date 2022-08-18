@@ -14,8 +14,8 @@ This manual is dedicated to install Terraform Enterprise online install on AWS w
 - Amazon AWS account credentials saved in .aws/credentials file
 [Configuration and credential file settings](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 
-- Configured Route53 DNS zone for domain `my-domain-here.com`
-[Creating a public hosted zone](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/CreatingHostedZone.html)
+- Configured CloudFlare DNS zone for domain `my-domain-here.com`
+[Cloudflare DNS zone setup](https://developers.cloudflare.com/dns/zone-setups/full-setup/setup/)
 
 - SSL certificate and SSL key files for the corresponding domain name
 [Certbot manual](https://certbot.eff.org/instructions)
@@ -70,6 +70,36 @@ release_sequence        = 619
 minio_access_key        = "PUT_your_Value_Here"
 minio_secret_key        = "PUT_your_Value_Here"
 ami_minio               = "ami-0b5de643012fe5385"
+instance_type_minio     = "t3.large"
+instance_type_jump      = "t3.medium"
+s3_bucket               = "aakulov-aws9-tfe-data"
+domain_name             = "akulov.cc"
+ssl_cert_path           = "PUT_your_Value_Here"
+ssl_key_path            = "PUT_your_Value_Here"
+ssl_chain_path          = "PUT_your_Value_Here"
+ssl_fullchain_cert_path = "PUT_your_Value_Here"
+engine_version          = "12.7"
+cloudflare_zone_id      = "PUT_your_Value_Here"
+cloudflare_api_token    = "PUT_your_Value_Here"
+
+key_name                = "PUT_your_Value_Here"
+ami                     = "PUT_your_Value_Here"
+instance_type           = "c5.2xlarge"
+db_instance_type        = "db.t3.2xlarge"
+region                  = "eu-central-1"
+cidr_vpc                = "10.6.0.0/16"
+cidr_subnet1            = "10.6.1.0/24"
+cidr_subnet2            = "10.6.2.0/24"
+cidr_subnet3            = "10.6.3.0/24"
+cidr_subnet4            = "10.6.4.0/24"
+db_password             = "PUT_your_Value_Here"
+enc_password            = "PUT_your_Value_Here"
+tfe_hostname            = "PUT_your_Value_Here"
+tfe_hostname_jump       = "PUT_your_Value_Here"
+release_sequence        = 647
+minio_access_key        = "PUT_your_Value_Here"
+minio_secret_key        = "PUT_your_Value_Here"
+ami_minio               = "PUT_your_Value_Here"
 instance_type_minio     = "t3.large"
 instance_type_jump      = "t3.medium"
 s3_bucket               = "aakulov-aws9-tfe-data"

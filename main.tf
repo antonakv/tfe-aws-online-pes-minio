@@ -1,9 +1,9 @@
 locals {
   s3endpoint           = format("http://%s:9000", aws_instance.aws9_minio.private_ip)
   s3endpointlocal      = "http://127.0.0.1:9000"
-  friendly_name_prefix = random_string.friendly_name.id
-  tfe_hostname         = "${local.friendly_name_prefix}${var.tfe_hostname}"
-  tfe_jump_hostname    = "${local.friendly_name_prefix}${var.tfe_hostname_jump}"
+  friendly_name_prefix = "aakulov-${random_string.friendly_name.id}"
+  tfe_hostname         = "${random_string.friendly_name.id}${var.tfe_hostname}"
+  tfe_jump_hostname    = "${random_string.friendly_name.id}${var.tfe_hostname_jump}"
 }
 
 resource "random_string" "friendly_name" {
@@ -26,7 +26,7 @@ resource "aws_vpc" "vpc" {
   enable_dns_support   = true
   enable_dns_hostnames = true
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aws9"
   }
 }
 
@@ -57,7 +57,7 @@ resource "aws_subnet" "subnet_public2" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.vpc.id
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aws9"
   }
 }
 
@@ -89,7 +89,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.subnet_public1.id
   depends_on    = [aws_internet_gateway.igw]
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aws9"
   }
 }
 
@@ -103,7 +103,7 @@ resource "aws_route_table" "aws9-private" {
   }
 
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9-private"
+    Name = "${local.friendly_name_prefix}-aws9-private"
   }
 }
 
@@ -117,7 +117,7 @@ resource "aws_route_table" "aws9-public" {
   }
 
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9-public"
+    Name = "${local.friendly_name_prefix}-aws9-public"
   }
 }
 
@@ -133,9 +133,9 @@ resource "aws_route_table_association" "aws9-public" {
 
 resource "aws_security_group" "aws9-internal-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "${local.friendly_name_prefix}-aakulov-aws9-internal-sg"
+  name   = "${local.friendly_name_prefix}-aws9-internal-sg"
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9-internal-sg"
+    Name = "${local.friendly_name_prefix}-aws9-internal-sg"
   }
 
   ingress {
@@ -225,9 +225,9 @@ resource "aws_security_group" "aws9-internal-sg" {
 
 resource "aws_security_group" "aws9-public-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "${local.friendly_name_prefix}-aakulov-aws9-public-sg"
+  name   = "${local.friendly_name_prefix}-aws9-public-sg"
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9-public-sg"
+    Name = "${local.friendly_name_prefix}-aws9-public-sg"
   }
 
   ingress {
@@ -289,10 +289,10 @@ resource "cloudflare_record" "aws9jump" {
 }
 
 resource "aws_db_subnet_group" "aws9" {
-  name       = "${local.friendly_name_prefix}-aakulov-aws9"
+  name       = "${local.friendly_name_prefix}-aws9"
   subnet_ids = [aws_subnet.subnet_public1.id, aws_subnet.subnet_public2.id, aws_subnet.subnet_private1.id, aws_subnet.subnet_private2.id]
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aws9"
   }
 }
 
@@ -309,7 +309,7 @@ resource "aws_db_instance" "aws9" {
   vpc_security_group_ids = [aws_security_group.aws9-internal-sg.id]
   skip_final_snapshot    = true
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aws9"
   }
 }
 
@@ -346,7 +346,7 @@ resource "aws_instance" "aws9_minio" {
     http_endpoint = "enabled"
   }
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9-minio"
+    Name = "${local.friendly_name_prefix}-aws9-minio"
   }
 }
 
@@ -413,8 +413,13 @@ resource "aws_instance" "aws9" {
     http_endpoint               = "enabled"
     http_put_response_hop_limit = 2
   }
+  root_block_device {
+    volume_type           = "gp2"
+    volume_size           = 60
+    delete_on_termination = true
+  }
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9"
+    Name = "${local.friendly_name_prefix}-aws9"
   }
 }
 
@@ -441,7 +446,7 @@ resource "aws_instance" "aws9jump" {
     http_put_response_hop_limit = 2
   }
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9jump"
+    Name = "${local.friendly_name_prefix}-aws9jump"
   }
 }
 
@@ -455,7 +460,7 @@ resource "aws_acm_certificate" "aws9" {
 }
 
 resource "aws_lb_target_group" "aws9-443" {
-  name        = "${local.friendly_name_prefix}-aakulov-aws9-443"
+  name        = "${local.friendly_name_prefix}-aws9-443"
   port        = 443
   protocol    = "HTTPS"
   vpc_id      = aws_vpc.vpc.id
@@ -481,7 +486,7 @@ resource "aws_lb_target_group" "aws9-443" {
 }
 
 resource "aws_lb_target_group" "aws9-8800" {
-  name        = "${local.friendly_name_prefix}-aakulov-aws9-8800"
+  name        = "${local.friendly_name_prefix}-aws9-8800"
   port        = 8800
   protocol    = "HTTPS"
   vpc_id      = aws_vpc.vpc.id
@@ -507,7 +512,7 @@ resource "aws_lb_target_group" "aws9-8800" {
 }
 
 resource "aws_lb" "aws9" {
-  name                             = "${local.friendly_name_prefix}-aakulov-aws9"
+  name                             = "${local.friendly_name_prefix}-aws9"
   internal                         = false
   load_balancer_type               = "application"
   security_groups                  = [aws_security_group.aws9-lb-sg.id]
@@ -587,9 +592,9 @@ resource "aws_lb_target_group_attachment" "aws9-8800" {
 
 resource "aws_security_group" "aws9-lb-sg" {
   vpc_id = aws_vpc.vpc.id
-  name   = "${local.friendly_name_prefix}-aakulov-aws9-lb-sg"
+  name   = "${local.friendly_name_prefix}-aws9-lb-sg"
   tags = {
-    Name = "${local.friendly_name_prefix}-aakulov-aws9-lb-sg"
+    Name = "${local.friendly_name_prefix}-aws9-lb-sg"
   }
 
   ingress {
@@ -628,12 +633,12 @@ resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-8800" {
 }
 
 resource "aws_iam_instance_profile" "aakulov-aws9-ec2-s3" {
-  name = "${local.friendly_name_prefix}-aakulov-aws9-ec2-s3"
+  name = "${local.friendly_name_prefix}-aws9-ec2-s3"
   role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.name
 }
 
 resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
-  name = "${local.friendly_name_prefix}-aakulov-aws9-ec2-s3"
+  name = "${local.friendly_name_prefix}-aws9-ec2-s3"
   role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.id
   policy = jsonencode({
     "Version" : "2012-10-17",
@@ -664,7 +669,7 @@ resource "aws_iam_role_policy" "aakulov-aws9-ec2-s3" {
 }
 
 resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
-  name = "${local.friendly_name_prefix}-aakulov-aws9-iam-role-ec2-s3"
+  name = "${local.friendly_name_prefix}-aws9-iam-role-ec2-s3"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -680,7 +685,7 @@ resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
   })
 
   tags = {
-    tag-key = "${local.friendly_name_prefix}-aakulov-aws9-iam-role-ec2-s3"
+    tag-key = "${local.friendly_name_prefix}-aws9-iam-role-ec2-s3"
   }
 }
 

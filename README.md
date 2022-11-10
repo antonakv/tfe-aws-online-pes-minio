@@ -1,4 +1,4 @@
-# tfe-aws-online-pes
+# tfe-aws-online-pes-minio-minio
 Terraform Enterprise online install on AWS with S3 and Postgresql db
 
 This manual is dedicated to install Terraform Enterprise online install on AWS with S3 and Postgresql db.
@@ -28,13 +28,13 @@ This manual is dedicated to install Terraform Enterprise online install on AWS w
 - Clone git repository
 
 ```bash
-git clone https://github.com/antonakv/tfe-aws-online-pes.git
+git clone https://github.com/antonakv/tfe-aws-online-pes-minio.git
 ```
 
 Expected command output looks like this:
 
 ```bash
-Cloning into 'tfe-aws-online-pes'...
+Cloning into 'tfe-aws-online-pes-minio'...
 remote: Enumerating objects: 12, done.
 remote: Counting objects: 100% (12/12), done.
 remote: Compressing objects: 100% (12/12), done.
@@ -43,10 +43,10 @@ Receiving objects: 100% (12/12), done.
 Resolving deltas: 100% (1/1), done.
 ```
 
-- Change folder to tfe-aws-online-pes
+- Change folder to tfe-aws-online-pes-minio
 
 ```bash
-cd tfe-aws-online-pes
+cd tfe-aws-online-pes-minio
 ```
 
 - Create file testing.tfvars with following contents

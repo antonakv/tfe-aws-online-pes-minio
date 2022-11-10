@@ -1,4 +1,4 @@
-# tf-aws-activeactive-agents instance_access
+# tfe-aws-online-pes-minio instance_access
 
 This manual is dedicated to Forward ssh and netdata ports to TFE and TFE agent instances
 using AWS Network Load Balancer.
@@ -23,12 +23,12 @@ using AWS Network Load Balancer.
 - Created Amazon EC2 key pair for Linux instance
 [Creating a public hosted zone](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#having-ec2-create-your-key-pair)
 
-- Provisioned with github.com/antonakv/tf-aws-activeactive-agents Terraform Enterprise active-active
-[https://github.com/antonakv/tf-aws-activeactive-agents](https://github.com/antonakv/tf-aws-activeactive-agents.git)
+- Provisioned with github.com/antonakv/tfe-aws-online-pes-minio Terraform Enterprise active-active
+[https://github.com/antonakv/tfe-aws-online-pes-minio](https://github.com/antonakv/tfe-aws-online-pes-minio.git)
 
 ## Preparation 
 
-- Change folder to tf-aws-activeactive-agents
+- Change folder to tfe-aws-online-pes-minio
 
 ```bash
 cd instance_access

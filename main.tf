@@ -143,6 +143,7 @@ resource "aws_security_group" "aws9-internal-sg" {
     to_port     = -1
     protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow all the icmp types"
   }
 
   ingress {
@@ -150,6 +151,15 @@ resource "aws_security_group" "aws9-internal-sg" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow ssh port 22"
+  }
+
+  ingress {
+    from_port   = 19999
+    to_port     = 19999
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow netdata port"
   }
 
   ingress {
@@ -157,6 +167,7 @@ resource "aws_security_group" "aws9-internal-sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "allow https port incoming connection"
   }
 
   ingress {
@@ -164,48 +175,23 @@ resource "aws_security_group" "aws9-internal-sg" {
     to_port         = 443
     protocol        = "tcp"
     security_groups = [aws_security_group.aws9-lb-sg.id]
+    description     = "allow https port incoming connection from Load balancer"
   }
 
   ingress {
-    from_port   = 8800
-    to_port     = 8800
+    from_port   = 5432
+    to_port     = 5432
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    self        = true
+    description = "allow postgres port incoming connections"
   }
 
   ingress {
-    from_port       = 8800
-    to_port         = 8800
-    protocol        = "tcp"
-    security_groups = [aws_security_group.aws9-lb-sg.id]
-  }
-
-  ingress {
-    from_port = 5432
-    to_port   = 5432
-    protocol  = "tcp"
-    self      = true
-  }
-
-  ingress {
-    from_port = 9000
-    to_port   = 9000
-    protocol  = "tcp"
-    self      = true
-  }
-
-  ingress {
-    from_port = 8800
-    to_port   = 8800
-    protocol  = "tcp"
-    self      = true
-  }
-
-  ingress {
-    from_port = 443
-    to_port   = 443
-    protocol  = "tcp"
-    self      = true
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    self        = true
+    description = "allow https port incoming connection"
   }
 
   ingress {
@@ -213,6 +199,31 @@ resource "aws_security_group" "aws9-internal-sg" {
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.aws9-public-sg.id]
+    description     = "Allow ssh port 22 from public security group"
+  }
+
+  ingress {
+    from_port       = 19999
+    to_port         = 19999
+    protocol        = "tcp"
+    security_groups = [aws_security_group.aws9-public-sg.id]
+    description     = "Allow netdata port from public security group"
+  }
+
+  ingress {
+    from_port   = 8201
+    to_port     = 8201
+    protocol    = "tcp"
+    self        = true
+    description = "allow Vault HA request forwarding"
+  }
+
+  ingress {
+    from_port = 9000
+    to_port   = 9000
+    protocol  = "tcp"
+    self      = true
+    description = "Minio storage port"
   }
 
   egress {
@@ -220,6 +231,7 @@ resource "aws_security_group" "aws9-internal-sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow outgoing connections"
   }
 }
 
@@ -235,6 +247,7 @@ resource "aws_security_group" "aws9-public-sg" {
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow http port incoming connection"
   }
 
   ingress {
@@ -242,6 +255,7 @@ resource "aws_security_group" "aws9-public-sg" {
     to_port     = 8800
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "allow replicated admin port incoming connection"
   }
 
   ingress {
@@ -249,6 +263,7 @@ resource "aws_security_group" "aws9-public-sg" {
     to_port     = 443
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "allow https port incoming connection"
   }
 
   ingress {
@@ -256,6 +271,15 @@ resource "aws_security_group" "aws9-public-sg" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow ssh port 22"
+  }
+
+  ingress {
+    from_port   = 19999
+    to_port     = 19999
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow netdata port 19999"
   }
 
   egress {
@@ -263,6 +287,55 @@ resource "aws_security_group" "aws9-public-sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+    description = "Allow outgoing connections"
+  }
+}
+
+resource "aws_security_group" "aws9-lb-sg" {
+  vpc_id = aws_vpc.vpc.id
+  name   = "${local.friendly_name_prefix}-aws9-lb-sg"
+  tags = {
+    Name = "${local.friendly_name_prefix}-aws9-lb-sg"
+  }
+
+  ingress {
+    from_port   = 8800
+    to_port     = 8800
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "allow replicated admin port incoming connection"
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "allow https port incoming connection"
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "allow ssh port incoming connection"
+  }
+
+  ingress {
+    from_port   = 19999
+    to_port     = 19999
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "allow netdata port incoming connection"
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "allow outgoing connections"
   }
 }
 
@@ -590,48 +663,6 @@ resource "aws_lb_target_group_attachment" "aws9-8800" {
   port             = 8800
 }
 
-resource "aws_security_group" "aws9-lb-sg" {
-  vpc_id = aws_vpc.vpc.id
-  name   = "${local.friendly_name_prefix}-aws9-lb-sg"
-  tags = {
-    Name = "${local.friendly_name_prefix}-aws9-lb-sg"
-  }
-
-  ingress {
-    from_port   = 8800
-    to_port     = 8800
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# Extra security group rules to avoid Cycle error
-
-resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-443" {
-  type                     = "egress"
-  from_port                = 443
-  to_port                  = 443
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.aws9-internal-sg.id
-  security_group_id        = aws_security_group.aws9-lb-sg.id
-}
-
-resource "aws_security_group_rule" "aws9-lb-sg-to-aws9-internal-sg-allow-8800" {
-  type                     = "egress"
-  from_port                = 8800
-  to_port                  = 8800
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.aws9-internal-sg.id
-  security_group_id        = aws_security_group.aws9-lb-sg.id
-}
-
 resource "aws_iam_instance_profile" "aakulov-aws9-ec2-s3" {
   name = "${local.friendly_name_prefix}-aws9-ec2-s3"
   role = aws_iam_role.aakulov-aws9-iam-role-ec2-s3.name
@@ -687,4 +718,14 @@ resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
   tags = {
     tag-key = "${local.friendly_name_prefix}-aws9-iam-role-ec2-s3"
   }
+}
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = aws_vpc.vpc.id
+  service_name = "com.amazonaws.${var.region}.s3"
+}
+
+resource "aws_vpc_endpoint_route_table_association" "private_s3_endpoint" {
+  route_table_id  = aws_route_table.aws9-private.id
+  vpc_endpoint_id = aws_vpc_endpoint.s3.id
 }

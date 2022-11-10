@@ -688,16 +688,3 @@ resource "aws_iam_role" "aakulov-aws9-iam-role-ec2-s3" {
     tag-key = "${local.friendly_name_prefix}-aws9-iam-role-ec2-s3"
   }
 }
-
-
-output "aws_jump" {
-  value = cloudflare_record.aws9jump.name
-}
-
-output "aws_url" {
-  value = cloudflare_record.aws9.name
-}
-
-output "ec2_instance_ip" {
-  value = aws_instance.aws9.private_ip
-}

@@ -266,11 +266,6 @@ resource "aws_security_group" "aws9-public-sg" {
   }
 }
 
-data "aws_route53_zone" "aws9" {
-  name         = var.domain_name
-  private_zone = false
-}
-
 resource "cloudflare_record" "aws9" {
   zone_id = var.cloudflare_zone_id
   name    = local.tfe_hostname
@@ -444,6 +439,11 @@ resource "aws_instance" "aws9jump" {
     http_tokens                 = "required"
     http_endpoint               = "enabled"
     http_put_response_hop_limit = 2
+  }
+  root_block_device {
+    volume_type           = "gp3"
+    volume_size           = 20
+    delete_on_termination = true
   }
   tags = {
     Name = "${local.friendly_name_prefix}-aws9jump"

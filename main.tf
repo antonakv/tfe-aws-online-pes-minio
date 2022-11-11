@@ -544,13 +544,13 @@ resource "aws_lb_target_group" "aws9-443" {
   }
   health_check {
     path                = "/"
-    port                = 8800
+    port                = 443
     healthy_threshold   = 6
     unhealthy_threshold = 2
     timeout             = 2
     interval            = 5
     protocol            = "HTTPS"
-    matcher             = "200,302,303"
+    matcher             = "200-399"
   }
   stickiness {
     enabled = true
@@ -576,7 +576,7 @@ resource "aws_lb_target_group" "aws9-8800" {
     timeout             = 2
     interval            = 5
     protocol            = "HTTPS"
-    matcher             = "200,302,303"
+    matcher             = "200-399"
   }
   stickiness {
     enabled = true
@@ -597,7 +597,7 @@ resource "aws_lb" "aws9" {
 
 resource "aws_lb_listener" "aws9-443" {
   load_balancer_arn = aws_lb.aws9.arn
-  port              = "443"
+  port              = 443
   protocol          = "HTTPS"
   certificate_arn   = aws_acm_certificate.aws9.arn
   ssl_policy        = "ELBSecurityPolicy-2016-08"

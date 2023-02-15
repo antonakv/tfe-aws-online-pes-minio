@@ -18,9 +18,6 @@ echo "
     \"azure_account_name\": {},
     \"azure_container\": {},
     \"azure_endpoint\": {},
-    \"backup_token\": {
-        \"value\": \"3e69c0572c1eddf7f232cf60f6b8634194bf40d09aa9535c78430e64df407ec4\"
-    },
     \"ca_certs\": {},
     \"capacity_concurrency\": {
         \"value\": \"10\"
